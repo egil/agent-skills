@@ -492,3 +492,8 @@ public sealed class CacheGrainServiceSubscriptionTests
 - The grain service still needs `IGrainService` on its public interface to register with Orleans.
 - Persist `GrainId` references, not direct observer references.
 - `ObserverManager` removes failed observers from its in-memory collection. Catch `SiloUnavailableException` in the notification handler to also remove them from persisted state.
+
+## References
+- [Sample implementation](assets/sample)
+- [Orleans Observers](https://learn.microsoft.com/en-us/dotnet/orleans/grains/observers?pivots=orleans-10-0)
+- [Orleans GrainServices](https://learn.microsoft.com/en-us/dotnet/orleans/grains/grainservices?pivots=orleans-10-0)
