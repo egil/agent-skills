@@ -1,0 +1,49 @@
+name: Validate skill samples
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test-samples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test changed samples
+        shell: bash
+        env:
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+          DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+          DOTNET_CLI_HOME: /tmp/dotnet
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+          else
+            base="${{ github.event.before }}"
+            head="${{ github.sha }}"
+          fi
+
+          mapfile -t samples < <(
+            git diff --name-only "$base" "$head" \
+              | awk -F/ '/^skills\/[^/]+\/assets\/sample\//{print $1"/"$2"/assets/sample"}' \
+              | sort -u
+          )
+
+          if [[ ${#samples[@]} -eq 0 ]]; then
+            echo "No sample changes detected."
+            exit 0
+          fi
+
+          for sample in "${samples[@]}"; do
+            echo "Running tests for $sample"
+            (cd "$sample" && dotnet test -v minimal -p:TreatWarningsAsErrors=true)
+          done
