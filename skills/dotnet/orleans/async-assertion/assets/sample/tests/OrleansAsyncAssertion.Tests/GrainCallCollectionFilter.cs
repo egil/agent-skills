@@ -1,61 +1,200 @@
-﻿using System.Threading.Channels;
+using System.Collections.Concurrent;
 
 namespace OrleansAsyncAssertion.Tests;
 
 /// <summary>
-/// An incoming grain call filter that records completed grain calls into a bounded channel
-/// for use by test assertion helpers. Assertion calls and Orleans internal calls are excluded.
+/// An incoming grain call filter that records completed grain calls into a shared append-only log
+/// with per-test marker tracking and automatic pruning. Only records calls while at least one test
+/// is registered via <see cref="RegisterTestStart"/>. Assertion calls and Orleans internal calls
+/// are excluded.
 /// </summary>
-public sealed class GrainCallCollectionFilter : IIncomingGrainCallFilter, IDisposable
+public sealed class GrainCallCollectionFilter : IIncomingGrainCallFilter
 {
-    private readonly Channel<IIncomingGrainCallContext> allActivities = Channel.CreateBounded<IIncomingGrainCallContext>(
-        new BoundedChannelOptions(1_000)
-        {
-            SingleReader = false, SingleWriter = true, Capacity = 1_000, FullMode = BoundedChannelFullMode.DropOldest,
-        });
-
-    private bool collectionEnabled;
+    /// <summary>
+    /// Guards <see cref="entries"/>, <see cref="baseOffset"/>, and <see cref="signal"/>.
+    /// </summary>
+    private readonly Lock syncLock = new();
 
     /// <summary>
-    /// Returns an async stream of grain call contexts recorded by this filter.
+    /// Append-only list of grain IDs observed by the filter.
+    /// </summary>
+    private readonly List<GrainId> entries = [];
+
+    /// <summary>
+    /// Maps test IDs to their start position in the log. Used for pruning and to prevent
+    /// removal of entries still needed by active tests.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, int> testMarkers = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The logical position of <c>entries[0]</c>. Increases as entries are pruned.
+    /// </summary>
+    private int baseOffset;
+
+    /// <summary>
+    /// A <see cref="TaskCompletionSource"/> that is completed and swapped on each append,
+    /// waking all waiters blocked in <see cref="WaitForNewEntryAsync"/>.
+    /// </summary>
+    private TaskCompletionSource signal = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    /// <summary>
+    /// The number of currently active tests. Checked on the hot path to skip recording
+    /// when no tests are running.
+    /// </summary>
+    private volatile int activeTestCount;
+
+    /// <summary>
+    /// Registers the start of a test, recording the current log position as a marker.
+    /// Call this before the test body runs so that all grain calls during the test
+    /// appear at positions &gt;= the returned value.
+    /// </summary>
+    /// <param name="testId">A unique identifier for the test (e.g., <c>IXunitTest.UniqueID</c>).</param>
+    /// <returns>The logical log position at the time of registration.</returns>
+    public int RegisterTestStart(string testId)
+    {
+        int position;
+        lock (syncLock)
+        {
+            position = baseOffset + entries.Count;
+        }
+
+        testMarkers[testId] = position;
+        Interlocked.Increment(ref activeTestCount);
+        return position;
+    }
+
+    /// <summary>
+    /// Unregisters a completed test and prunes log entries that are no longer needed
+    /// by any active test.
+    /// </summary>
+    /// <param name="testId">The unique identifier used in the matching <see cref="RegisterTestStart"/> call.</param>
+    public void RegisterTestEnd(string testId)
+    {
+        if (testMarkers.TryRemove(testId, out _))
+        {
+            Interlocked.Decrement(ref activeTestCount);
+        }
+
+        Prune();
+    }
+
+    /// <summary>
+    /// Scans the log from <paramref name="startPosition"/> for an entry matching
+    /// <paramref name="targetGrainId"/>. Returns <c>true</c> on the first match.
+    /// </summary>
+    /// <param name="startPosition">The logical position to start scanning from.</param>
+    /// <param name="targetGrainId">The grain ID to match.</param>
+    /// <param name="newPosition">
+    /// Set to one past the matched entry on success, or the current end of the log on failure.
+    /// Use this value as <paramref name="startPosition"/> on subsequent calls.
+    /// </param>
+    /// <returns><c>true</c> if a matching entry was found; otherwise <c>false</c>.</returns>
+    public bool HasMatchSince(int startPosition, GrainId targetGrainId, out int newPosition)
+    {
+        lock (syncLock)
+        {
+            var startIndex = startPosition - baseOffset;
+            if (startIndex < 0)
+            {
+                startIndex = 0;
+            }
+
+            for (var i = startIndex; i < entries.Count; i++)
+            {
+                if (entries[i] == targetGrainId)
+                {
+                    newPosition = baseOffset + i + 1;
+                    return true;
+                }
+            }
+
+            newPosition = baseOffset + entries.Count;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Returns a task that completes when a new entry is appended to the log.
     /// </summary>
     /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>An async enumerable of grain call contexts.</returns>
-    public IAsyncEnumerable<IIncomingGrainCallContext> GetCalls(CancellationToken cancellationToken)
-        => allActivities.Reader.ReadAllAsync(cancellationToken);
+    /// <returns>A task that completes on the next append.</returns>
+    public Task WaitForNewEntryAsync(CancellationToken cancellationToken)
+    {
+        Task task;
+        lock (syncLock)
+        {
+            task = signal.Task;
+        }
+
+        return task.WaitAsync(cancellationToken);
+    }
 
     /// <summary>
-    /// Invokes the grain call and records it into the channel unless it is an internal
-    /// Orleans call or an assertion call.
+    /// Invokes the grain call and records the target grain ID in the log unless the call is
+    /// an Orleans internal call, an assertion call, or no tests are currently active.
     /// </summary>
     /// <param name="context">The incoming grain call context.</param>
-    /// <returns>A task that completes when the call and recording are finished.</returns>
+    /// <returns>A task that completes when the call and optional recording are finished.</returns>
     public async Task Invoke(IIncomingGrainCallContext context)
     {
         await context.Invoke();
 
-        if (!collectionEnabled || IsOrleansInternalCall(context) || RequestContext.Get("test-assertion") is true)
+        if (activeTestCount == 0
+            || IsOrleansInternalCall(context)
+            || RequestContext.Get("test-assertion") is true)
         {
             return;
         }
 
-        await allActivities.Writer.WriteAsync(context);
+        Append(context.TargetId);
     }
 
     /// <summary>
-    /// Completes the channel so consumers stop reading.
+    /// Appends a grain ID to the log and signals all waiters.
     /// </summary>
-    public void Dispose()
+    /// <param name="grainId">The grain ID to record.</param>
+    private void Append(GrainId grainId)
     {
-        allActivities.Writer.TryComplete();
+        TaskCompletionSource previous;
+        lock (syncLock)
+        {
+            entries.Add(grainId);
+            previous = signal;
+            signal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+
+        previous.TrySetResult();
     }
 
     /// <summary>
-    /// Enables recording of grain calls. Call after the cluster is deployed.
+    /// Removes log entries that are older than the earliest active test marker.
     /// </summary>
-    public void EnableRecording()
+    private void Prune()
     {
-        collectionEnabled = true;
+        var minPosition = int.MaxValue;
+        foreach (var kvp in testMarkers)
+        {
+            if (kvp.Value < minPosition)
+            {
+                minPosition = kvp.Value;
+            }
+        }
+
+        lock (syncLock)
+        {
+            // If no markers remain, prune everything.
+            if (minPosition == int.MaxValue)
+            {
+                minPosition = baseOffset + entries.Count;
+            }
+
+            var removeCount = minPosition - baseOffset;
+            if (removeCount > 0 && removeCount <= entries.Count)
+            {
+                entries.RemoveRange(0, removeCount);
+                baseOffset += removeCount;
+            }
+        }
     }
 
     /// <summary>
