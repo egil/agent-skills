@@ -1,18 +1,12 @@
-using System.Diagnostics;
 using Orleans.Streams;
 
 namespace OrleansAsyncAssertion.Grains;
 
 /// <summary>
-/// Consumes stream values and emits a tracing activity when delivery completes.
+/// Consumes stream values and records the last observed value.
 /// </summary>
 public sealed class StreamConsumerGrain : Grain, IStreamConsumerGrain, IAsyncObserver<int>
 {
-    /// <summary>
-    /// The activity source used to tag stream delivery events.
-    /// </summary>
-    public static readonly ActivitySource StreamActivitySource = new("OrleansAsyncAssertion.Streams");
-
     /// <summary>
     /// Stores the current subscription handle.
     /// </summary>
@@ -22,16 +16,6 @@ public sealed class StreamConsumerGrain : Grain, IStreamConsumerGrain, IAsyncObs
     /// Tracks the last received value.
     /// </summary>
     private int lastValue;
-
-    /// <summary>
-    /// Stores the stream identifier to tag delivery spans.
-    /// </summary>
-    private Guid streamId;
-
-    /// <summary>
-    /// Stores the test identifier used to correlate spans.
-    /// </summary>
-    private string? testId;
 
     /// <summary>
     /// Subscribes to the stream identified by the supplied ID.
@@ -45,21 +29,9 @@ public sealed class StreamConsumerGrain : Grain, IStreamConsumerGrain, IAsyncObs
             await subscription.UnsubscribeAsync();
         }
 
-        this.streamId = streamId;
         var stream = Orleans.GrainStreamingExtensions.GetStreamProvider(this, StreamConstants.StreamProviderName)
             .GetStream<int>(Orleans.Runtime.StreamId.Create(StreamConstants.StreamNamespace, streamId));
         subscription = await stream.SubscribeAsync(this);
-    }
-
-    /// <summary>
-    /// Sets the test identifier used to tag stream delivery spans.
-    /// </summary>
-    /// <param name="testId">The unique test identifier.</param>
-    /// <returns>A task that completes when the identifier is stored.</returns>
-    public Task SetTestId(string testId)
-    {
-        this.testId = testId;
-        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -80,17 +52,6 @@ public sealed class StreamConsumerGrain : Grain, IStreamConsumerGrain, IAsyncObs
     public Task OnNextAsync(int item, StreamSequenceToken? token = null)
     {
         lastValue = item;
-        using var activity = StreamActivitySource.StartActivity("StreamDelivery", ActivityKind.Consumer);
-        if (activity is not null)
-        {
-            activity.SetTag("stream.namespace", StreamConstants.StreamNamespace);
-            activity.SetTag("stream.id", streamId.ToString("N"));
-            if (!string.IsNullOrWhiteSpace(testId))
-            {
-                activity.SetTag("test.id", testId);
-            }
-        }
-
         return Task.CompletedTask;
     }
 

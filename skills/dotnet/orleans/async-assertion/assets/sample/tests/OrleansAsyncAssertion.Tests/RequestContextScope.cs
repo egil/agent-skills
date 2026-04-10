@@ -1,4 +1,4 @@
-﻿namespace OrleansAsyncAssertion.Tests.Simplified;
+﻿namespace OrleansAsyncAssertion.Tests;
 
 /// <summary>
 /// Creates a scoped RequestContext entry that is restored on dispose.

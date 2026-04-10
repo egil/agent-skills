@@ -13,13 +13,6 @@ public interface IStreamConsumerGrain : IGrainWithStringKey
     Task Subscribe(Guid streamId);
 
     /// <summary>
-    /// Sets the test identifier used to tag stream delivery spans.
-    /// </summary>
-    /// <param name="testId">The unique test identifier.</param>
-    /// <returns>A task that completes when the identifier is stored.</returns>
-    Task SetTestId(string testId);
-
-    /// <summary>
     /// Reads the last value delivered to this consumer.
     /// </summary>
     /// <returns>The last delivered value.</returns>
