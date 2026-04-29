@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OrleansAsyncAssertion/OrleansAsyncAssertion.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OrleansAsyncAssertion.Tests/OrleansAsyncAssertion.Tests.csproj" />
+  </Folder>
+</Solution>
