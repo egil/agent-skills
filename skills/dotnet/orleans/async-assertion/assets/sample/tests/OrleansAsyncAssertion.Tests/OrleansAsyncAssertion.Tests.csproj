@@ -3,7 +3,7 @@
     <AssemblyName>OrleansAsyncAssertion.Tests</AssemblyName>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <NoWarn>$(NoWarn);CA1515;CA1034</NoWarn>
+    <NoWarn>$(NoWarn);CA1515;CA1034;CA1033</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Egil.Orleans.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Orleans.Persistence.Memory" />
     <PackageReference Include="Microsoft.Orleans.Serialization.Abstractions" />

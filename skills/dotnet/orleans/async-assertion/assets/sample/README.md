@@ -1,25 +1,27 @@
 # Orleans Async Assertion Sample
 
-This sample demonstrates a deterministic `WaitForAssertionAsync` pattern for Orleans tests using per-subscriber channels and an `IIncomingGrainCallFilter`. Instead of polling with `Task.Delay` or coupling tests to specific RPC sequences, the tests use _any_ grain call to the target grain as a retry trigger. The assertion itself defines the contract.
+This sample demonstrates the deterministic `WaitForAssertionAsync` pattern for Orleans tests using the
+[`Egil.Orleans.Testing`](https://www.nuget.org/packages/Egil.Orleans.Testing) package. Instead of polling with
+`Task.Delay` or coupling tests to specific RPC sequences, assertions are retried whenever the package's
+`GrainActivityCollector` observes grain activity. The assertion itself defines the contract.
 
 ## Architecture
 
-- **`GrainCallCollectionFilter`** — `IIncomingGrainCallFilter` that broadcasts `GrainCallTriggerEvent`s to per-subscriber bounded channels. Each concurrent `WaitForAssertionAsync` call gets its own channel — no contention between readers.
-- **`IGrainCallCollectorProvider`** — Interface extending `IGrainFactory` that test fixtures implement. Exposes `CallCollector` and `WaitForAssertionAsyncTimeout`.
-- **`GrainCallCollectorProviderExtensions`** — C# 14 extension methods on `IGrainCallCollectorProvider` providing `WaitForAssertionAsync` overloads (resolved grain, id-types matrix, custom trigger, return values).
-- **`SiloFixture`** — Sample `IClassFixture`/`ICollectionFixture` that implements `IGrainCallCollectorProvider`, creating the test cluster and registering the filter.
-- **`RequestContextScope`** — Prevents assertion calls from being recorded as grain call activity.
+- **`GrainActivityCollector`** (package) — observes incoming grain calls and, when enabled, storage operations in the silo.
+- **`AddGrainActivityCollector`** (package) — silo builder extension that registers the collector and its grain call filter, and exposes `CollectStorageActivityFromDefault()` for storage observation.
+- **`WaitForAssertionAsync`** (package) — extension methods on `IGrainActivityWaiter` that retry an assertion on observed activity, optionally scoped to a single grain.
+- **`SiloFixture`** — sample `IClassFixture`/`ICollectionFixture` that owns the test cluster and collector and implements `IGrainActivityWaiter`, so tests call `fixture.WaitForAssertionAsync(...)` directly.
 
 ## What the tests prove
 
-- Regular RPC calls trigger assertion retries through the grain call filter.
-- One-way RPC calls produce deterministic triggers via the incoming grain call filter.
-- Stream deliveries go through the grain call filter on the consumer grain.
-- Parallel waits use unique grain IDs and per-subscriber channels to avoid cross-test interference.
+- Regular RPC calls trigger assertion retries.
+- One-way RPC calls produce deterministic triggers.
+- Stream deliveries trigger retries through the grain call filter on the consumer grain.
+- Parallel waits use unique grain IDs so grain-scoped waits do not interfere.
 - Value-returning assertions propagate the return value.
-- Id-type overloads resolve grains internally.
-- Custom trigger predicates fire on arbitrary grain calls.
-- The channel-exhaustion path retries correctly after the channel is drained.
+- The overload without a grain scope retries on any observed activity.
+- A never-succeeding assertion fails with `WaitForAssertionTimeoutException` carrying the last assertion failure.
+- The `GetGrainCallsAsync` feed can be observed directly when individual events are needed.
 
 ## Run the tests
 

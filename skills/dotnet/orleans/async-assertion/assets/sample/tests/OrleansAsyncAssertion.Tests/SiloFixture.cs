@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
+using Egil.Orleans.Testing;
 using Orleans.Streams;
 using Orleans.TestingHost;
 using OrleansAsyncAssertion.Grains;
@@ -8,49 +7,43 @@ using Xunit;
 namespace OrleansAsyncAssertion.Tests;
 
 /// <summary>
-/// Builds and tears down an Orleans test cluster with grain call collection enabled.
-/// Implements <see cref="IGrainCallCollectorProvider"/> so that the
-/// <c>WaitForAssertionAsync</c> extension methods work directly on this fixture.
+/// Builds and tears down an Orleans test cluster with a
+/// <see cref="GrainActivityCollector"/> from the <c>Egil.Orleans.Testing</c> package.
 /// </summary>
 /// <remarks>
 /// <para>
 /// Use as an <see cref="IClassFixture{TFixture}"/> for per-class clusters or as a
-/// collection fixture for shared clusters. No base class or per-test attribute is required —
-/// the <see cref="GrainCallCollectionFilter"/> uses per-subscriber channels, so each
-/// <c>WaitForAssertionAsync</c> call subscribes and unsubscribes automatically.
+/// collection fixture for shared clusters. No base class or per-test attribute is required.
 /// </para>
 /// <para>
-/// The filter is registered both as a singleton (for DI access) and as an
-/// <see cref="IIncomingGrainCallFilter"/> in the silo pipeline.
+/// The fixture implements <see cref="IGrainActivityWaiter"/> and forwards to the collector,
+/// so tests can call <c>fixture.WaitForAssertionAsync(...)</c> directly.
 /// </para>
 /// </remarks>
-public class SiloFixture : IAsyncLifetime, IGrainCallCollectorProvider
+public class SiloFixture : IAsyncLifetime, IGrainActivityWaiter
 {
-    /// <summary>The underlying test cluster, created during <see cref="InitializeAsync"/>.</summary>
-    private InProcessTestCluster? cluster;
-
-    /// <summary>The grain factory obtained from the cluster client.</summary>
-    private IGrainFactory? grainFactory;
-
     /// <summary>The stream provider obtained from the cluster client.</summary>
     private IStreamProvider? streamProvider;
 
-    /// <summary>The grain call collection filter, created before cluster deployment.</summary>
-    public GrainCallCollectionFilter CallCollector { get; } = new();
+    /// <summary>Gets the collector that observes grain calls and storage operations in the silo.</summary>
+    public GrainActivityCollector Collector { get; } = new();
 
-    /// <inheritdoc />
-    public TimeSpan WaitForAssertionAsyncTimeout { get; set; } = IGrainCallCollectorProvider.DefaultWaitForAssertionAsyncTimeout;
+    /// <summary>Gets the grain factory from the cluster client.</summary>
+    public IGrainFactory GrainFactory => Cluster?.Client ?? throw new InvalidOperationException("Test cluster not running.");
+
+    /// <summary>Gets the stream provider configured for the test cluster.</summary>
+    public IStreamProvider StreamProvider => streamProvider ?? throw new InvalidOperationException("Test cluster not running.");
 
     /// <summary>
     /// Gets the service provider from the test silo for resolving DI services.
     /// </summary>
     public IServiceProvider Services => Cluster?.GetSiloServiceProvider() ?? throw new InvalidOperationException("Test cluster not running.");
 
-    /// <summary>Gets the deployed test cluster instance.</summary>
-    protected InProcessTestCluster? Cluster { get => cluster; set => cluster = value; }
+    /// <summary>Gets or sets the deployed test cluster instance.</summary>
+    protected InProcessTestCluster? Cluster { get; set; }
 
     /// <summary>
-    /// Creates and deploys the test cluster with a grain call collection filter.
+    /// Creates and deploys the test cluster with the grain activity collector attached.
     /// </summary>
     public async ValueTask InitializeAsync()
     {
@@ -62,8 +55,9 @@ public class SiloFixture : IAsyncLifetime, IGrainCallCollectorProvider
             siloBuilder.AddMemoryGrainStorage("PubSubStore");
             siloBuilder.AddMemoryStreams(StreamConstants.StreamProviderName);
 
-            siloBuilder.Services.AddSingleton(CallCollector);
-            siloBuilder.Services.AddSingleton<IIncomingGrainCallFilter>(CallCollector);
+            // Observes incoming grain calls, and writes to the "Default" storage provider.
+            siloBuilder.AddGrainActivityCollector(Collector)
+                .CollectStorageActivityFromDefault();
 
             ConfigureSilo(options, siloBuilder);
         });
@@ -73,10 +67,9 @@ public class SiloFixture : IAsyncLifetime, IGrainCallCollectorProvider
             clientBuilder.AddMemoryStreams(StreamConstants.StreamProviderName);
         });
 
-        cluster = builder.Build();
-        await cluster.DeployAsync();
-        grainFactory = cluster.Client;
-        streamProvider = cluster.Client.GetStreamProvider(StreamConstants.StreamProviderName);
+        Cluster = builder.Build();
+        await Cluster.DeployAsync();
+        streamProvider = Cluster.Client.GetStreamProvider(StreamConstants.StreamProviderName);
     }
 
     /// <summary>
@@ -89,97 +82,37 @@ public class SiloFixture : IAsyncLifetime, IGrainCallCollectorProvider
     }
 
     /// <summary>
-    /// Stops all silos and disposes the cluster and call collector.
+    /// Stops all silos and disposes the cluster and collector.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
-        if (cluster is not null)
+        if (Cluster is not null)
         {
-            await cluster.StopAllSilosAsync();
+            await Cluster.DisposeAsync();
         }
 
-        CallCollector.Dispose();
+        Collector.Dispose();
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>Gets the stream provider configured for the test cluster.</summary>
-    public IStreamProvider StreamProvider => streamProvider ?? throw new InvalidOperationException("Test cluster not running.");
-
-    // ---- IGrainFactory delegation ----
-
-    /// <inheritdoc />
-    [StackTraceHidden]
-    public TGrainInterface GetGrain<TGrainInterface>(Guid primaryKey, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithGuidKey
-        => GrainFactory.GetGrain<TGrainInterface>(primaryKey, grainClassNamePrefix);
-
-    /// <inheritdoc />
-    [StackTraceHidden]
-    public TGrainInterface GetGrain<TGrainInterface>(long primaryKey, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithIntegerKey
-        => GrainFactory.GetGrain<TGrainInterface>(primaryKey, grainClassNamePrefix);
-
-    /// <inheritdoc />
-    [StackTraceHidden]
-    public TGrainInterface GetGrain<TGrainInterface>(string primaryKey, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithStringKey
-        => GrainFactory.GetGrain<TGrainInterface>(primaryKey, grainClassNamePrefix);
-
-    /// <inheritdoc />
-    public TGrainInterface GetGrain<TGrainInterface>(Guid primaryKey, string keyExtension, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithGuidCompoundKey
-        => GrainFactory.GetGrain<TGrainInterface>(primaryKey, keyExtension, grainClassNamePrefix);
-
-    /// <inheritdoc />
-    public TGrainInterface GetGrain<TGrainInterface>(long primaryKey, string keyExtension, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithIntegerCompoundKey
-        => GrainFactory.GetGrain<TGrainInterface>(primaryKey, keyExtension, grainClassNamePrefix);
-
-    /// <inheritdoc />
-    public TGrainObserverInterface CreateObjectReference<TGrainObserverInterface>(IGrainObserver obj) where TGrainObserverInterface : IGrainObserver
-        => GrainFactory.CreateObjectReference<TGrainObserverInterface>(obj);
-
-    /// <inheritdoc />
-    public void DeleteObjectReference<TGrainObserverInterface>(IGrainObserver obj) where TGrainObserverInterface : IGrainObserver
-        => GrainFactory.DeleteObjectReference<TGrainObserverInterface>(obj);
-
-    /// <inheritdoc />
-    public IGrain GetGrain(Type grainInterfaceType, Guid grainPrimaryKey)
-        => GrainFactory.GetGrain(grainInterfaceType, grainPrimaryKey);
-
-    /// <inheritdoc />
-    public IGrain GetGrain(Type grainInterfaceType, long grainPrimaryKey)
-        => GrainFactory.GetGrain(grainInterfaceType, grainPrimaryKey);
-
-    /// <inheritdoc />
-    public IGrain GetGrain(Type grainInterfaceType, string grainPrimaryKey)
-        => GrainFactory.GetGrain(grainInterfaceType, grainPrimaryKey);
-
-    /// <inheritdoc />
-    public IGrain GetGrain(Type grainInterfaceType, Guid grainPrimaryKey, string keyExtension)
-        => GrainFactory.GetGrain(grainInterfaceType, grainPrimaryKey, keyExtension);
-
-    /// <inheritdoc />
-    public IGrain GetGrain(Type grainInterfaceType, long grainPrimaryKey, string keyExtension)
-        => GrainFactory.GetGrain(grainInterfaceType, grainPrimaryKey, keyExtension);
-
-    /// <inheritdoc />
-    public TGrainInterface GetGrain<TGrainInterface>(GrainId grainId) where TGrainInterface : IAddressable
-        => GrainFactory.GetGrain<TGrainInterface>(grainId);
-
-    /// <inheritdoc />
-    public IAddressable GetGrain(GrainId grainId)
-        => GrainFactory.GetGrain(grainId);
-
-    /// <inheritdoc />
-    public IAddressable GetGrain(GrainId grainId, GrainInterfaceType interfaceType)
-        => GrainFactory.GetGrain(grainId, interfaceType);
-
-    /// <inheritdoc />
-    public IAddressable GetGrain(Type interfaceType, IdSpan grainKey, string grainClassNamePrefix)
-        => GrainFactory.GetGrain(interfaceType, grainKey, grainClassNamePrefix);
-
-    /// <inheritdoc />
-    public IAddressable GetGrain(Type interfaceType, IdSpan grainKey)
-        => GrainFactory.GetGrain(interfaceType, grainKey);
+    /// <summary>
+    /// Gets a grain reference from the cluster client.
+    /// </summary>
+    /// <typeparam name="TGrainInterface">The grain interface type.</typeparam>
+    /// <param name="primaryKey">The grain primary key.</param>
+    /// <returns>The grain reference.</returns>
+    public TGrainInterface GetGrain<TGrainInterface>(string primaryKey)
+        where TGrainInterface : IGrainWithStringKey
+        => GrainFactory.GetGrain<TGrainInterface>(primaryKey);
 
     /// <summary>
-    /// Gets the cluster client grain factory. Throws if the cluster is not running.
+    /// Forwards the wait primitive to <see cref="Collector"/> so tests can call
+    /// <c>fixture.WaitForAssertionAsync(...)</c> instead of <c>fixture.Collector.WaitForAssertionAsync(...)</c>.
     /// </summary>
-    private IGrainFactory GrainFactory => grainFactory ?? throw new InvalidOperationException("Test cluster not running.");
+    Task<TResult> IGrainActivityWaiter.WaitForAssertionAsync<TResult>(
+        Func<ValueTask<TResult>> assertion,
+        Predicate<GrainActivity>? filter,
+        TimeSpan? timeout,
+        CancellationToken cancellationToken)
+        => ((IGrainActivityWaiter)Collector).WaitForAssertionAsync(assertion, filter, timeout, cancellationToken);
 }
