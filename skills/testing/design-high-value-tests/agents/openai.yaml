@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design High-Value Tests"
+  short_description: "Design durable unit, integration, and E2E tests"
+  default_prompt: "Use $design-high-value-tests to choose durable test levels for this behavior and its boundaries."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verification-Driven Delivery"
+  short_description: "Carry test decisions through delivery"
+  default_prompt: "Use $verification-driven-delivery with the active planning or implementation skill to preserve high-value verification decisions."
