@@ -1,4 +1,4 @@
 interface:
   display_name: "Development Session Observability"
   short_description: "Measure coordinated delivery sessions"
-  default_prompt: "Use $development-session-observability to record passive process evidence and summarize exact usage and quality outcomes."
+  default_prompt: "Use $development-session-observability to analyze passive Codex session evidence, emit only optional sparse semantic markers, and summarize exact usage and quality outcomes."
