@@ -1,0 +1,6 @@
+interface:
+  display_name: "Deliver Issue Slice"
+  short_description: "Deliver one small GitHub issue through merge"
+  default_prompt: "Use $deliver-issue-slice to deliver the assigned GitHub issue through independent testing, review, and the contract-defined merge process."
+policy:
+  allow_implicit_invocation: false

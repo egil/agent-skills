@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review Delivery Slice"
+  short_description: "Review one snapshot and persist findings"
+  default_prompt: "Use $review-delivery-slice to review the assigned fixed worktree snapshot and write any findings only to its configured local-review Markdown file."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Orchestrate Milestone Delivery"
+  short_description: "Coordinate GitHub delivery slices through merge"
+  default_prompt: "Use $orchestrate-milestone-delivery to coordinate the named milestone or explicit issue scope through merged, production-ready slices."
+policy:
+  allow_implicit_invocation: false
