@@ -166,7 +166,7 @@ public sealed class AsyncAssertionTests(SiloFixture fixture) : IClassFixture<Sil
         await grain.Add(1);
 
         var call = await fixture.Collector
-            .GetGrainCallsAsync(grain, includeExisting: true, TestContext.Current.CancellationToken)
+            .GetGrainCallsAsync(grain, true, TestContext.Current.CancellationToken)
             .FirstAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(nameof(ICounterGrain.Add), call.InterfaceMethod?.Name);
