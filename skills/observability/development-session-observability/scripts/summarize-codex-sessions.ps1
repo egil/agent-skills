@@ -12,7 +12,6 @@ $tokenNames = @('input_tokens', 'output_tokens', 'cached_tokens', 'reasoning_tok
 function Get-Property([object]$Value, [string]$Name) { if ($null -eq $Value) { return $null }; if ($Value -is [System.Collections.IDictionary]) { if ($Value.Contains($Name)) { return $Value[$Name] }; return $null }; $p = $Value.PSObject.Properties[$Name]; if ($null -eq $p) { return $null }; return $p.Value }
 function Get-String([object]$Value, [string]$Name) { $v = Get-Property $Value $Name; if ($v -is [string] -and -not [string]::IsNullOrWhiteSpace($v)) { return $v }; return $null }
 function Get-Number([object]$Value, [string]$Name) { $v = Get-Property $Value $Name; if ($null -eq $v) { return $null }; if ($v -is [long] -or $v -is [int]) { if([long]$v -lt 0){$script:invalidNative=$true;return $null}; return [long]$v }; $script:invalidNative=$true; return $null }
-function Get-Strings([object]$Value, [string]$Name) { $v=Get-Property $Value $Name; if ($null -eq $v) { return @() }; return @($v | ForEach-Object { if ($_ -is [string] -and $_) { $_ } } | Sort-Object -Unique) }
 function Add-Unique([System.Collections.Generic.HashSet[string]]$Set, [string]$Value) { if (-not [string]::IsNullOrWhiteSpace($Value)) { [void]$Set.Add($Value) } }
 function Get-OutputMarkers([object]$OutputWrapper) {
     $strings = [System.Collections.Generic.List[string]]::new(); $output=Get-Property $OutputWrapper 'output'; if($output -is [string]){[void]$strings.Add($output)}elseif($null -ne $output){foreach($item in @($output)){$text=Get-String $item 'text';if($text){[void]$strings.Add($text)}}}
