@@ -158,7 +158,7 @@ call flow or persistence details — prefer `WaitForAssertionAsync`):
 ```csharp
 // Live IAsyncEnumerable feeds; use includeExisting: true to replay recent history.
 await foreach (var activity in collector.GetGrainActivityAsync(cancellationToken: ct)) { }
-await foreach (var call in collector.GetGrainCallsAsync(grain, includeExisting: true, ct)) { }
+await foreach (var call in collector.GetGrainCallsAsync(grain, true, ct)) { }
 await foreach (var op in collector.GetStorageOperationsAsync(grain, cancellationToken: ct)) { }
 ```
 
