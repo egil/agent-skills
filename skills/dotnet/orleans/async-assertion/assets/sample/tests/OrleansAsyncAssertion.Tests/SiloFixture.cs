@@ -55,7 +55,7 @@ public class SiloFixture : IAsyncLifetime, IGrainActivityWaiter
             siloBuilder.AddMemoryGrainStorage("PubSubStore");
             siloBuilder.AddMemoryStreams(StreamConstants.StreamProviderName);
 
-            // Observes incoming grain calls, and writes to the "Default" storage provider.
+            // Observes incoming grain calls, and collects operations from the "Default" storage provider.
             siloBuilder.AddGrainActivityCollector(Collector)
                 .CollectStorageActivityFromDefault();
 
