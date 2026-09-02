@@ -132,6 +132,22 @@ public sealed class DevelopmentSessionObservabilityScriptTests
         Assert.Equal("not-run", Assert.Single(session.GetProperty("results").EnumerateArray()).GetString()); Assert.Equal("cancelled", Assert.Single(session.GetProperty("outcomes").EnumerateArray()).GetString()); Assert.Equal("not-run", Assert.Single(item.GetProperty("results").EnumerateArray()).GetString());
     }
 
+    /// <summary>Verifies an explicitly requested nested output path is created.</summary>
+    [Fact]
+    public async Task Adapter_creates_missing_output_directory()
+    {
+        using var w = new Workspace(); const string id = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+        w.Write(id, new[] { $"{{\"type\":\"session_meta\",\"payload\":{{\"id\":\"{id}\"}}}}" });
+        var output = System.IO.Path.Combine(w.Path, "artifacts", "observability", "summary.json");
+
+        var result = await w.Run("summarize-codex-sessions.ps1", $"-SessionsPath {w.Path} -OutputJson {output}");
+
+        Assert.True(result.Code == 0, result.Error);
+        Assert.True(File.Exists(output));
+        using var document = JsonDocument.Parse(File.ReadAllText(output));
+        Assert.Equal(1, document.RootElement.GetProperty("schemaVersion").GetInt32());
+    }
+
     /// <summary>Verifies parallel active time is not presented as wall time.</summary>
     [Fact]
     public async Task Work_item_keeps_parallel_active_time_distinct_from_wall_span()
