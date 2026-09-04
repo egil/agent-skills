@@ -88,6 +88,7 @@ $requiredSkills = @(
     [pscustomobject]@{ Name = 'orchestrate-milestone-delivery'; File = 'skills/delivery/orchestrate-milestone-delivery/SKILL.md' },
     [pscustomobject]@{ Name = 'plan-delivery-slices'; File = 'skills/delivery/plan-delivery-slices/SKILL.md' },
     [pscustomobject]@{ Name = 'deliver-issue-slice'; File = 'skills/delivery/deliver-issue-slice/SKILL.md' },
+    [pscustomobject]@{ Name = 'delivery-runtime-protocol'; File = 'skills/delivery/delivery-runtime-protocol/SKILL.md' },
     [pscustomobject]@{ Name = 'author-slice-tests'; File = 'skills/delivery/author-slice-tests/SKILL.md' },
     [pscustomobject]@{ Name = 'review-delivery-slice'; File = 'skills/delivery/review-delivery-slice/SKILL.md' },
     [pscustomobject]@{ Name = 'development-session-observability'; File = 'skills/observability/development-session-observability/SKILL.md' },
@@ -97,11 +98,22 @@ $requiredSkills = @(
 
 $requiredSupportFiles = @(
     'skills/delivery/orchestrate-milestone-delivery/agents/openai.yaml',
+    'skills/delivery/delivery-runtime-protocol/agents/openai.yaml',
+    'skills/delivery/delivery-runtime-protocol/references/model-routing.md',
+    'skills/delivery/delivery-runtime-protocol/references/review-artifacts.md',
     'skills/delivery/plan-delivery-slices/agents/openai.yaml',
     'skills/delivery/deliver-issue-slice/agents/openai.yaml',
+    'skills/delivery/deliver-issue-slice/references/executable-contract.md',
+    'skills/delivery/deliver-issue-slice/references/pull-request-review.md',
+    'skills/delivery/deliver-issue-slice/references/rebase.md',
     'skills/delivery/author-slice-tests/agents/openai.yaml',
+    'skills/delivery/author-slice-tests/references/green-baseline.md',
+    'skills/delivery/author-slice-tests/references/green-finalization.md',
+    'skills/delivery/author-slice-tests/references/rebase-conflict.md',
+    'skills/delivery/author-slice-tests/references/red-contract.md',
     'skills/delivery/review-delivery-slice/agents/openai.yaml',
-    'skills/delivery/review-delivery-slice/references/review-findings.md',
+    'skills/delivery/review-delivery-slice/references/complete-change.md',
+    'skills/delivery/review-delivery-slice/references/test-contract.md',
     'skills/observability/development-session-observability/agents/openai.yaml',
     'skills/observability/development-session-observability/references/event-schema.md',
     'skills/observability/development-session-observability/scripts/emit-marker.ps1',
@@ -220,7 +232,7 @@ foreach ($skill in $requiredSkills | Where-Object { $_.Name -in @('orchestrate-m
 
 $scanPaths = @()
 $scanPaths += $agentMap | ForEach-Object { Join-Path $Root ($_.File -replace '/', [IO.Path]::DirectorySeparatorChar) }
-$scanPaths += $requiredSkills | Where-Object { $_.Name -in @('orchestrate-milestone-delivery', 'plan-delivery-slices', 'deliver-issue-slice', 'author-slice-tests', 'review-delivery-slice', 'development-session-observability') } | ForEach-Object { Join-Path $Root ($_.File -replace '/', [IO.Path]::DirectorySeparatorChar) }
+$scanPaths += $requiredSkills | Where-Object { $_.Name -in @('orchestrate-milestone-delivery', 'delivery-runtime-protocol', 'plan-delivery-slices', 'deliver-issue-slice', 'author-slice-tests', 'review-delivery-slice', 'development-session-observability') } | ForEach-Object { Join-Path $Root ($_.File -replace '/', [IO.Path]::DirectorySeparatorChar) }
 
 foreach ($path in $scanPaths | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }) {
     $relativePath = $path.Substring($Root.Length).TrimStart([IO.Path]::DirectorySeparatorChar, '/')

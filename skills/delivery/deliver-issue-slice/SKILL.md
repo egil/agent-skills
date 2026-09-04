@@ -24,14 +24,14 @@ If the contract or assignment omits a required value, stop before the affected m
 
 ## Dependencies and model selection
 
-- Internal: `$orchestrate-milestone-delivery` for linked-branch, provisioning, model-routing, and project-state protocol; `$plan-delivery-slices`, `$author-slice-tests`, `$review-delivery-slice`, `$design-high-value-tests`, `$verification-driven-delivery`, and `$development-session-observability`.
+- Internal: `$orchestrate-milestone-delivery` for linked-branch, provisioning, and project-state protocol; `$delivery-runtime-protocol` for model routing and local review recovery; `$plan-delivery-slices`, `$author-slice-tests`, `$review-delivery-slice`, `$design-high-value-tests`, `$verification-driven-delivery`, and `$development-session-observability`.
 - External companion skills from [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills): `$to-tickets` when planning is required and `$code-review` through the Reviewer.
 
-Before creating a bounded Planner, Tester, or Reviewer task, read [model routing](../orchestrate-milestone-delivery/references/model-routing.md). Pass the selected model and reasoning pair and record its classification and rationale. An Implementor that becomes a parent Supervisor applies the same protocol to every child.
+Before creating a bounded Planner, Tester, or Reviewer task, load `$delivery-runtime-protocol` and apply its model-routing branch. Pass the selected model and reasoning pair and record its classification and rationale. An Implementor that becomes a parent Supervisor applies the same protocol to every child.
 
 Load `$development-session-observability` and inherit the Supervisor's stable run ID and issue work item. When supplied, use the marker command only for material semantic transitions and pass it to bounded children. Do not create ledgers, summarize telemetry, or duplicate Codex-native usage. Telemetry must not delay delivery or cross the review-reporting boundary.
 
-Reroute only at a clean bounded boundary. Circuit-break after the evidence-based threshold in `$orchestrate-milestone-delivery`: preserve and push the recoverable checkpoint, then report `blocked` or `human-action` rather than repeatedly retrying the same failing assignment. Never change a running task's model invisibly.
+Reroute only at a clean bounded boundary. Apply the circuit-break in `$delivery-runtime-protocol`: preserve role-owned recovery state, push only a permitted committed code checkpoint, keep ignored review receipts local, and report `blocked` or `human-action` rather than repeatedly retrying the same failing assignment. Never change a running task's model invisibly.
 
 An explicit assignment to deliver issue `#N` through merge authorizes only the ordinary operations required by the contract: work on the issue's own linked branch and worktree, commit and push checkpoints, publish and update its pull request, rebase its own branch with exact lease protection, reply to review, and perform the permitted merge once every gate is clean. It does not authorize deployment, release, bypassing protections, mutating another issue's branch, creating a pull-request stack, destructive cleanup, or unrelated tracker work.
 
@@ -49,7 +49,7 @@ GitHub and the remote branch are the durable delivery record; the existing issue
 6. Reconcile the latest contract-defined phase checkpoint with the linked remote SHA and any pull-request head. Recover the referenced Tester and Reviewer receipts. If the checkpoint is missing, inconsistent, or covers another SHA, stop at the last proven phase; any nondurable gate whose clean result cannot be retrieved must be rerun by a fresh bounded task on the recovered exact snapshot. Never infer a phase or pass from branch contents.
 7. Preserve unexpected work and report an ownership conflict; do not discard, overwrite, or absorb it without evidence that it belongs to this issue.
 
-Read [the local review artifact protocol](../review-delivery-slice/references/review-findings.md) before the first Tester handoff and on every recovery. Keep `artifacts/reviews/issue-<number>/` ignored through the repository-local exclude, retain it at least until the pull request is ready to merge, and exclude it from every stage, commit, push, stash, and cleanup. For a known review candidate, derive `<mode>/<full-head-sha>/` and validate `verification.md`, `request.md`, both axis files, `result.md`, and any applicable `dispositions.md` by their contents rather than presence. Reuse exact-snapshot completed work, resume exact-snapshot partial work, and preserve stale records without treating them as current. A missing tracked repository review path never blocks delivery; missing local artifacts initiate the required work rather than blocking it or proving it passed.
+Before the first Tester handoff and on every recovery, load `$delivery-runtime-protocol` and apply its local-review-artifact branch. The Implementor owns local ignore setup and retention. The protocol's snapshot and content validation—not file presence—decides whether to reuse complete work or resume missing work; a missing tracked review path never blocks delivery or proves review passed.
 
 ## Keep the issue small
 
@@ -81,11 +81,11 @@ After every bounded Planner, Tester, Reviewer, or Implementor phase, the issue-o
 
 ## Establish the executable contract
 
-Before production work, read [the executable-contract procedure](references/executable-contract.md) and follow its behavior-changing, behavior-preserving, or infrastructure-exception branch. Start implementation only after that branch's test contract or exception reaches its stated completion criterion.
+Before production work, read [the executable-contract procedure](references/executable-contract.md). For behavior-changing or behavior-preserving work, complete that branch's pre-implementation Tester and test-contract-review steps before starting production implementation. For an infrastructure exception, first record the approved no-test decision, alternative evidence, and residual risk. Then follow the selected branch through its final completion criterion.
 
 ## Require fresh independent local review
 
-After production verification and Tester green finalization, or after recording the infrastructure no-test decision, curate coherent valid commits, apply the repository's authoring self-review, push any published rewrite with exact lease protection, and verify the remote branch equals candidate `HEAD`. Then launch a new `$review-delivery-slice` task in `complete-change` mode on the same worktree with explicit selected model and reasoning. Supply behavior-start SHA, comparison-base OID, Agent Brief, Verification or green-baseline contract, candidate `HEAD`, commits, index, unstaged state, evidence, and residual risks.
+After production verification and Tester green finalization, or after recording the infrastructure no-test decision, curate coherent valid commits, apply the repository's authoring self-review, push any published rewrite with exact lease protection, and verify the remote branch equals candidate `HEAD`. Require the index, tracked worktree, and relevant untracked implementation inventory to be clean; ignored protocol artifacts are the only allowed local difference. Then launch a new `$review-delivery-slice` task in `complete-change` mode on the same worktree with explicit selected model and reasoning. Supply behavior-start SHA, comparison-base OID, Agent Brief, Verification or green-baseline contract, candidate `HEAD`, commits, local-state evidence, and residual risks.
 
 Before dispatch, resolve the predictable snapshot directory. For an approved no-test exception, write its exact evidence to `verification.md`; otherwise require the Tester's matching receipt. Create or validate `request.md`, then check `standards.md`, `spec.md`, and `result.md`. Return an already-complete exact-snapshot result to the workflow without spawning duplicate review. Otherwise commission only the missing or invalid work.
 
