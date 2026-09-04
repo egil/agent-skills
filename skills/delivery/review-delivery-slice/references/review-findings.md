@@ -1,38 +1,59 @@
-# Local review findings
+# Local review artifacts
 
-Use the consuming repository's configured path. This file is the durable, branch-local substitute for pull-request review comments before a pull request exists. It remains implementation evidence, not a Supervisor status channel.
+Store temporary review handoffs in the issue worktree at:
+
+```text
+artifacts/reviews/issue-<number>/<mode>/<full-head-sha>/
+|-- request.md
+|-- verification.md
+|-- standards.md
+|-- spec.md
+|-- result.md
+`-- dispositions.md
+```
+
+`<mode>` is `test-contract` or `complete-change`. The issue, mode, and full reviewed `HEAD` make the directory predictable: an Implementor checks this exact directory before commissioning a Reviewer and resumes usable work instead of duplicating it.
+
+Keep `artifacts/reviews/` Git-ignored. Verify a representative file with `git check-ignore -v` before writing; when no existing rule covers it, add `/artifacts/reviews/` to the repository-local exclude file resolved by `git rev-parse --git-path info/exclude`. Do not add or change a tracked ignore file solely for these artifacts. Retain the directory at least until the pull request is ready to merge. Never stage, commit, push, stash, or remove it as cleanup during delivery. A missing tracked repository review path never blocks delivery. Missing local artifacts mean create or resume the required work; they are neither a blocker nor evidence that review passed.
+
+These files are crash-recovery state and implementation evidence, not a Supervisor status channel. Each completed file records the issue, mode, full `HEAD`, comparison base, writer task ID when available, status, and write time. Write the file owned by the current role as soon as its result is known so an interruption loses at most the active step.
 
 ## Ownership and lifecycle
 
-- A Reviewer appends reviewer-authored metadata and findings only after revalidating the fixed snapshot. Earlier finding text is immutable.
-- The Implementor verifies the write, then stages, commits, and pushes it before remediation. Only the Implementor updates disposition fields.
+- The Tester writes `verification.md` for `test-contract` and `complete-change` handoffs once the exact resulting `HEAD` is known. The Implementor writes it only for an approved no-test exception.
+- The Implementor creates or verifies `request.md` before dispatch. It records the fixed snapshot, points to `verification.md`, and uses `in-progress` status without claiming a review result.
+- The Standards and Spec reviewers write only `standards.md` and `spec.md`, respectively, after revalidating the fixed snapshot. Earlier finding text is immutable.
+- The aggregating Reviewer writes `result.md` only after validating both axis files against the request and snapshot. It marks the result `complete` or records exactly what remains incomplete.
+- The Implementor writes only `dispositions.md`, preserving stable finding IDs and exact remediation commits and verification evidence.
 - Test-code remediation is delegated to a fresh Tester; the Implementor records the returned result.
-- A fresh Reviewer appends another cycle after any production or test change. A clean review changes no file.
+- A production or test change has a different full `HEAD` and therefore a different snapshot directory. A clean review still produces a complete `result.md` recovery receipt.
 - An unchanged open concern keeps its original ID and is not copied into later cycles. A failed claimed resolution becomes a new finding which links the prior ID.
-- Follow the consuming contract's retention policy. When the file is temporary, remove it before the final candidate review. When it is retained delivery evidence, include it in the final candidate.
+- Before dispatch or resume, validate existing files rather than trusting their presence. Reuse a verification or axis file only when its issue, mode, full `HEAD`, comparison base, status, and writer ownership match. Reuse `result.md` only when the request, verification evidence, and both independent axes are complete for that exact snapshot. Validate `dispositions.md` when findings make it applicable. A stale, contradictory, partial, or malformed file is recovery evidence, not a clean verdict; preserve it and resume or rerun the missing work.
 
 ## Document shape
 
-Start the file with the issue and branch. Append one section per review attempt; never erase an earlier attempt.
+Use the same metadata header in every file. Put Reviewer findings in the relevant axis file and Implementor decisions in `dispositions.md`; never rewrite Reviewer-authored findings.
 
 ````markdown
-# Local review: issue <number or stable identifier>
+# <Request, Verification, Standards review, Spec review, Result, or Dispositions>: issue <number>
 
 - Issue: <URL or stable identifier>
+- Mode: `test-contract` or `complete-change`
 - Branch: `<branch>`
-- File policy: <retained evidence or temporary checkpoint>
-
-## Review <monotonic sequence>: <test-contract or complete-change>
-
 - Reviewed commit: `<full SHA>`
 - Comparison base: `<full OID>`
+- Writer task: `<task or run ID when available>`
+- Status: `in-progress`, `complete`, or `incomplete`
+- Written at: `<ISO-8601 UTC timestamp>`
+
+## Review
+
 - Behavior start: `<full SHA>`
-- Reviewer task: `<task or run ID when available>`
 - Snapshot: <clean, or exact index/worktree/untracked summary>
 
 ### Standards
 
-#### LR-<sequence>-S001 [P1] Concise actionable title
+#### LR-<reviewed-sha-prefix>-S001 [P1] Concise actionable title
 
 - File: `path/to/file.ext`
 - Lines: `42-47`
@@ -46,22 +67,13 @@ Explain the concrete problem, why it matters, and the evidence. Keep it usable a
 exact replacement text when a safe, local replacement is available
 ```
 
-##### Implementor disposition
-
-- Status: `open`
-- Decision: `pending`
-- Owner: `implementor` or `tester`
-- Rationale: pending
-- Resolution commit: pending
-- Verification: pending
-
 ### Spec
 
-<!-- Use LR-<sequence>-P001 and the same finding shape. -->
+<!-- In spec.md, use LR-<reviewed-sha-prefix>-P001 and the same finding shape. -->
 ````
 
 Use the repository's established priority convention. If none exists, use `P0` for release-blocking or destructive risk, `P1` for a high-impact correctness defect, `P2` for an ordinary actionable defect, and `P3` for a low-impact improvement that is still worth changing. Omit the suggestion block when no exact replacement is safe.
 
 Locations use one-based inclusive lines against the reviewed commit. Use `RIGHT` for added or changed lines and `LEFT` for removed lines. For a contract or evidence finding rather than a code line, replace File, Lines, and Side with `Location: <precise document, section, command, or missing evidence>`.
 
-The Implementor changes disposition Status from `open` to `closed` only when the Decision and evidence are complete. Allowed decisions are `accepted`, `rejected`, `superseded`, `split`, and `human-action`; `human-action` remains open until the decision is supplied. Record evidence rather than rewriting the finding. A resolution names the exact production or test commit and verification; a rejection names the governing repository or specification evidence. Resolve findings in file order within their axis unless dependency or safety requires a different order, and record that reason.
+In `dispositions.md`, the Implementor changes a finding's status from `open` to `closed` only when the decision and evidence are complete. Allowed decisions are `accepted`, `rejected`, `superseded`, `split`, and `human-action`; `human-action` remains open until the decision is supplied. Record evidence rather than rewriting the finding. A resolution names the exact production or test commit and verification; a rejection names the governing repository or specification evidence. Resolve findings in file order within their axis unless dependency or safety requires a different order, and record that reason.

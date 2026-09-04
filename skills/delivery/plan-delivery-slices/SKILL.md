@@ -1,6 +1,6 @@
 ---
 name: plan-delivery-slices
-description: Decompose one GitHub delivery issue into small, durable child issues with native relationships and executable agent contracts. Use only when a Supervisor or issue-owning Implementor delegates planning; do not use for coding, testing, or review.
+description: Decompose one delivery issue into durable, independently mergeable GitHub slices.
 ---
 
 # Plan delivery slices

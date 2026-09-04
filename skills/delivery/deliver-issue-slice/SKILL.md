@@ -1,6 +1,6 @@
 ---
 name: deliver-issue-slice
-description: Own one small GitHub issue from its natively linked branch through independent testing and review, publication, configured GitHub review automation, and an allowed merge. Invoke only for an explicitly assigned delivery slice.
+description: Deliver one GitHub issue from its linked branch through independent testing, review, and merge.
 ---
 
 # Deliver an issue slice
@@ -9,7 +9,16 @@ Own one small, independently mergeable vertical slice through merge. Coordinate 
 
 ## Load the consuming-repository contract
 
-The assignment must identify or point to a delivery contract discoverable through applicable `AGENTS.md`. It must define the GitHub host, repository, authorized identity, issue and pull-request relationships, native issue-linked branch and worktree rules, default branch, branch naming, commit and push policy, protected-branch and merge rules, Agent Brief and Verification contract, test/build/quality gates, a durable phase-checkpoint format and location, local-review Markdown path and retention policy, required workflow and automated-review completion evidence and bounded wait policies, and the upward notification route. It must state which issue, branch, pull-request, and merge mutations are authorized and keep deployment or release outside this skill unless explicitly included.
+The assignment must identify or point to a delivery contract discoverable through applicable `AGENTS.md`. It must define:
+
+- GitHub host, repository, authorized identity, and issue and pull-request relationships;
+- linked-branch, worktree, default-branch, naming, commit, push, protection, and merge rules;
+- Agent Brief and Verification or green-baseline contract;
+- test, build, quality, workflow, and automated-review gates with exact-head evidence and bounded waits;
+- durable phase-checkpoint format, upward signals, and authorized mutations; and
+- deployment and release exclusions unless separately authorized.
+
+A tracked repository path for temporary review records is neither required nor permitted to block delivery.
 
 If the contract or assignment omits a required value, stop before the affected mutation and report `blocked` or `human-action`; do not invent a project, account, branch prefix, default branch, label, merge strategy, or review service.
 
@@ -18,7 +27,7 @@ If the contract or assignment omits a required value, stop before the affected m
 - Internal: `$orchestrate-milestone-delivery` for linked-branch, provisioning, model-routing, and project-state protocol; `$plan-delivery-slices`, `$author-slice-tests`, `$review-delivery-slice`, `$design-high-value-tests`, `$verification-driven-delivery`, and `$development-session-observability`.
 - External companion skills from [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills): `$to-tickets` when planning is required and `$code-review` through the Reviewer.
 
-The owner that creates each bounded Planner, Tester, or Reviewer task must select and pass both an exact Codex model identifier and reasoning setting. Load `$orchestrate-milestone-delivery`'s Codex routing table and use issue evidence; role skills have no fixed default and must not silently substitute another pair. For an Implementor that becomes a parent Supervisor, the same selection rule applies to every child. Record classification, pair, rationale, and any deviation in the handoff or available session telemetry.
+Before creating a bounded Planner, Tester, or Reviewer task, read [model routing](../orchestrate-milestone-delivery/references/model-routing.md). Pass the selected model and reasoning pair and record its classification and rationale. An Implementor that becomes a parent Supervisor applies the same protocol to every child.
 
 Load `$development-session-observability` and inherit the Supervisor's stable run ID and issue work item. When supplied, use the marker command only for material semantic transitions and pass it to bounded children. Do not create ledgers, summarize telemetry, or duplicate Codex-native usage. Telemetry must not delay delivery or cross the review-reporting boundary.
 
@@ -30,15 +39,17 @@ Before a GitHub mutation, verify the contract-defined identity with `gh auth sta
 
 ## Recover durable state
 
-GitHub and the remote branch are the recovery record, not an agent's context.
+GitHub and the remote branch are the durable delivery record; the existing issue worktree holds temporary inter-agent review receipts that must survive agent interruption.
 
-1. Re-read the issue, Agent Brief, Verification or green-baseline contract, milestone or scope, native parent and dependency relationships, assignee, linked branch or pull request, durable phase checkpoints, contract-designated local-review file, checks, and review threads. Paginate every relationship and review-thread connection and reconcile reported counts; a successful default-sized page is not complete evidence.
+1. Re-read the issue, Agent Brief, Verification or green-baseline contract, milestone or scope, native parent and dependency relationships, assignee, linked branch or pull request, durable phase checkpoints, predictable local review artifacts, checks, and review threads. Paginate every relationship and review-thread connection and reconcile reported counts; a successful default-sized page is not complete evidence.
 2. Record worktree path, branch or detached state, `HEAD`, upstream, remote branch head, index state, worktree state, and untracked inventory before changing anything.
 3. Fetch the exact linked remote ref and inspect `git worktree list --porcelain`. If this worktree is detached, attach a local branch tracking that ref only when no other worktree owns it, then verify branch, upstream, `HEAD`, and remote OID equality. Treat an existing checkout elsewhere as an ownership conflict.
 4. When the Supervisor sends the provisioning instruction with resolved task and host IDs, echo them in a one-time `provisioned` receipt with path, branch, upstream, `HEAD`, and verified remote OID. End the turn without editing and wait for an explicit `proceed` follow-up tied to that receipt and OID. A recovered active task must verify the matching proceed message; if absent, remain read-only and request it.
 5. Resume the existing linked branch and pull-request stage. Never create a second implementation or restart from the default branch while recoverable issue work exists.
 6. Reconcile the latest contract-defined phase checkpoint with the linked remote SHA and any pull-request head. Recover the referenced Tester and Reviewer receipts. If the checkpoint is missing, inconsistent, or covers another SHA, stop at the last proven phase; any nondurable gate whose clean result cannot be retrieved must be rerun by a fresh bounded task on the recovered exact snapshot. Never infer a phase or pass from branch contents.
 7. Preserve unexpected work and report an ownership conflict; do not discard, overwrite, or absorb it without evidence that it belongs to this issue.
+
+Read [the local review artifact protocol](../review-delivery-slice/references/review-findings.md) before the first Tester handoff and on every recovery. Keep `artifacts/reviews/issue-<number>/` ignored through the repository-local exclude, retain it at least until the pull request is ready to merge, and exclude it from every stage, commit, push, stash, and cleanup. For a known review candidate, derive `<mode>/<full-head-sha>/` and validate `verification.md`, `request.md`, both axis files, `result.md`, and any applicable `dispositions.md` by their contents rather than presence. Reuse exact-snapshot completed work, resume exact-snapshot partial work, and preserve stale records without treating them as current. A missing tracked repository review path never blocks delivery; missing local artifacts initiate the required work rather than blocking it or proving it passed.
 
 ## Keep the issue small
 
@@ -68,76 +79,34 @@ Before complete-change review, curate temporary red, fixup, and correction check
 
 After every bounded Planner, Tester, Reviewer, or Implementor phase, the issue-owning Implementor writes the contract-defined durable phase checkpoint before starting the next phase. It records a monotonic phase or sequence, issue and branch, exact covered SHA and comparison base, task or run identity when available, result (`clean`, `findings`, `blocked`, or `human-action`), evidence or finding location, and the deterministic next owner or action. Reviewer and Tester roles return their receipts to the Implementor and do not mutate the tracker themselves. Do not put implementation chatter into the Supervisor channel; the durable checkpoint is recovery state, not an upward progress signal.
 
-## Establish the executable contract first
+## Establish the executable contract
 
-For behavior-changing work without the infrastructure exception:
-
-1. Launch a short-lived Tester on this same worktree with `$author-slice-tests` in `red-contract` mode. Pass the selected model and reasoning explicitly, together with Agent Brief, Verification contract, immutable behavior-start SHA, worktree, branch, and contract.
-2. Let the Tester own all test code and prove meaningful red for the intended behavioral reason. Do not edit concurrently.
-3. Checkpoint and push the Tester's completed code and evidence.
-4. Launch a fresh short-lived Reviewer on the same worktree with `$review-delivery-slice` in `test-contract` mode, passing explicit model and reasoning plus the full handoff.
-5. Route findings to a new bounded Tester assignment. Do not silently weaken or rewrite reviewed tests. Repeat with a fresh Reviewer until the test contract is clean.
-6. Implement the smallest coherent production change that makes the reviewed tests pass. Run focused verification during iteration and broader affected verification before handoff. Commit and push a recoverable implementation checkpoint.
-7. Launch a fresh Tester in `green-finalization` mode with explicit selected model and reasoning. It performs required assertion inversion and restored-green runs, finishes Tester-owned changes, runs applicable gates, and pushes the bounded handoff.
-
-For behavior-preserving work, do not manufacture red:
-
-1. Launch a fresh Tester in `green-baseline` mode with explicit selected model and reasoning. It establishes or authors the smallest characterization portfolio at the immutable behavior-start SHA, proves new assertions sensitive by controlled inversion, restores green, and checkpoints test changes.
-2. Launch a fresh `test-contract` Reviewer with explicit selected model and reasoning to assess the green-baseline contract and evidence.
-3. Implement the smallest production change preserving the reviewed contract, run focused and broader verification, and commit and push the implementation checkpoint.
-4. Launch a fresh Tester in `green-finalization` mode with explicit selected model and reasoning to compare the result with the approved baseline, perform required inversions for changed tests, and run applicable gates before complete-change review.
-
-A missing public surface is not meaningful red when a test cannot compile. In that case, add only the smallest compilable behavior-free shell before the Tester establishes red.
-
-The Implementor may decide not to add automated tests only when no deterministic automated boundary faithfully exercises the changed infrastructure risk. Before implementation, record the decision, reason, alternative verification, and residual risk for the complete-change Reviewer. Difficulty, slowness, or inconvenience alone is insufficient. When no test code changes, skip only the test-authoring/review assignments that no longer apply; production verification, complete-change review, and every contract-defined quality gate still apply.
+Before production work, read [the executable-contract procedure](references/executable-contract.md) and follow its behavior-changing, behavior-preserving, or infrastructure-exception branch. Start implementation only after that branch's test contract or exception reaches its stated completion criterion.
 
 ## Require fresh independent local review
 
 After production verification and Tester green finalization, or after recording the infrastructure no-test decision, curate coherent valid commits, apply the repository's authoring self-review, push any published rewrite with exact lease protection, and verify the remote branch equals candidate `HEAD`. Then launch a new `$review-delivery-slice` task in `complete-change` mode on the same worktree with explicit selected model and reasoning. Supply behavior-start SHA, comparison-base OID, Agent Brief, Verification or green-baseline contract, candidate `HEAD`, commits, index, unstaged state, evidence, and residual risks.
 
-The formal review is independent and code-read-only. Its sole permitted write is the contract-designated local-review Markdown file, and findings return only to this Implementor:
+Before dispatch, resolve the predictable snapshot directory. For an approved no-test exception, write its exact evidence to `verification.md`; otherwise require the Tester's matching receipt. Create or validate `request.md`, then check `standards.md`, `spec.md`, and `result.md`. Return an already-complete exact-snapshot result to the workflow without spawning duplicate review. Otherwise commission only the missing or invalid work.
+
+The formal review is independent and code-read-only. Its writes are limited to that snapshot's ignored review artifacts, and findings return only to this Implementor:
 
 - the Implementor owns production-code findings and decides disposition against repository and specification evidence;
 - a fresh Tester owns test-code changes, including justified reconsideration of a reviewed test;
-- when findings exist, verify that the Reviewer changed only the designated file and that its reviewed SHA and locations match the supplied snapshot; commit and push that file unchanged before remediation so a restart can recover the queue;
-- process findings in file order within each axis, one at a time. For each production finding, make and verify the production change; for each test finding, delegate that finding ID to a fresh Tester. Then update only its Implementor disposition with the decision, rationale, exact resolution commit when applicable, and verification evidence, and commit and push that checkpoint before taking the next finding;
-- after any production or test change, run applicable verification, rerun Tester green finalization when assertions changed, curate history, and commission fresh complete-change review of the whole new committed snapshot. The fresh Reviewer appends a new cycle only when it finds actionable issues; a clean review leaves the file and exact `HEAD` unchanged; and
+- when findings exist, verify that the Reviewer changed only the expected artifact files and that every reviewed SHA and location matches the supplied snapshot; keep the complete axis and result receipts before remediation so a restart can recover the queue;
+- process findings in file order within each axis, one at a time. For each production finding, make and verify the production change; for each test finding, delegate that finding ID to a fresh Tester. Then update only `dispositions.md` with the decision, rationale, exact resolution commit when applicable, and verification evidence before taking the next finding;
+- after any production or test change, run applicable verification, rerun Tester green finalization when assertions changed, curate history, and commission fresh complete-change review in the new `HEAD` snapshot directory. A clean review still writes its exact-snapshot result receipt without changing Git state; and
 - when a finding implies substantial redesign or new behavior, stop the cycle and plan a new child or blocking issue.
 
-Preserve Reviewer-authored text exactly; dispositions add evidence rather than rewriting history. If the contract treats the file as temporary, remove it before the final candidate review. If the contract retains it as delivery evidence, include every disposition in the final candidate. The local stage is complete only when every recorded finding has a terminal disposition, applicable test-contract review and Tester green finalization or the recorded infrastructure exception are complete, both Standards and Spec axes are clean for the exact curated candidate `HEAD`, that `HEAD` is the verified remote branch head, and all required gates pass. Do not create even a draft pull request before then.
+Preserve Reviewer-authored text exactly; dispositions add evidence rather than rewriting history. The local stage is complete only when every recorded finding has a terminal disposition, applicable test-contract review and Tester green finalization or the recorded infrastructure exception are complete, both Standards and Spec axes are clean for the exact curated candidate `HEAD`, a complete exact-snapshot result receipt exists, that `HEAD` is the verified remote branch head, and all required gates pass. Do not create even a draft pull request before then.
 
-## Publish and own configured GitHub review automation
+## Publish and reconcile pull-request review
 
-If the consuming contract defines an automatic GitHub pull-request reviewer:
-
-1. Reconfirm local and remote heads equal the exact reviewed candidate, then create a draft pull request associated with the issue.
-2. Keep it draft while required workflows run. Prove each required workflow result belongs to the current pull-request head and use the contract-defined bounded polling cadence and per-workflow wait budget. Fix failures through the owning role, commit and curate, verify, obtain fresh complete-change review, and push the exact reviewed head. If a required workflow remains queued or in progress beyond its budget, is cancelled without a qualifying replacement, or is unavailable, persist the exact head and observations and report `blocked`; do not wait forever or treat absence of failure as success.
-3. When the change remains complete and workflows pass, mark the pull request ready according to the contract. Trigger the configured reviewer only through its documented mechanism; do not assume or manually duplicate an automatic trigger.
-4. Read every page of current thread-aware review state and reconcile reported counts. Evaluate every finding against issue, current diff, repository policy, and evidence.
-5. Apply valid production suggestions through the Implementor and valid test suggestions through a bounded Tester. Reject incorrect or out-of-scope findings with concise evidence.
-6. After any change, synchronize any GitHub-applied commit locally, verify it, complete the appropriate Tester or production verification, and obtain a fresh local complete-change review before continuing.
-7. Reply to every review comment after disposition with evidence and, for a fix, the pushed commit. Resolve every addressed thread; reply to top-level comments even when GitHub cannot resolve them.
-8. After every changed push, wait for required workflows and a new automatic review covering that remote head. Prove completion using the contract-defined provider identity and head-linked review evidence; absence of comments alone is not a completed clean review. Use the contract's bounded wait cadence and maximum budget. If the provider reports unavailable or no qualifying review arrives within that budget, persist the exact pull-request head and wait evidence and report `blocked`; do not wait forever or infer a clean review. Continue until local Standards and Spec review is clean, every current thread is addressed and resolved, the latest configured review covers the current head, no unresolved actionable finding remains, and every required check passes.
-
-If no automatic reviewer is configured, follow the contract's required GitHub review process and still preserve the same disposition, reply, resolution, and exact-head rules. Never send individual test failures, review findings, or remediation chatter to the Supervisor.
+After the local stage is complete, read [the pull-request review procedure](references/pull-request-review.md). Apply the configured-review or no-automation branch through its exact-head completion criterion before attempting merge.
 
 ## Rebase and merge
 
-Dependent work starts only after blockers merge into the default branch; do not create a pull-request stack unless separately authorized.
-
-Immediately before merge, refresh remote state and require that the pull request is complete, linked to the issue, review-clean, check-clean, and permitted by branch protections. Rebase the issue branch onto current default branch when the contract requires it and record that OID as the new comparison base.
-
-During a conflicted rebase, preserve role ownership:
-
-1. Record pre-rebase head, target default-branch OID, current `HEAD`, replayed-commit identity, progress and todo, complete index-stage state, worktree diff, and untracked inventory. Resolve and stage production-owned conflicts, but never test-owned conflicts.
-2. For test-owned conflicts, launch a fresh bounded Tester with `$author-slice-tests` in `rebase-conflict` mode, passing that exact state and explicit selected model and reasoning. Do not touch Git, index, or worktree while it runs.
-3. Revalidate all identities and the full index against the Tester's report, verify only declared test-owned paths changed, then continue the rebase.
-4. If a file mixes production and test ownership or requires a product or contract decision, leave it unresolved, preserve evidence, abort only as authorized by the contract, confirm the published branch is unchanged, and report `blocked` or `human-action`.
-5. After conflict resolution, complete the rebase, apply owner self-review, immediately preserve the recovery checkpoint under exact lease, and rerun the applicable gates and fresh complete-change review.
-
-Every rebase that changes `HEAD`, conflict-free or not, invalidates the prior exact-snapshot verdict. Run applicable verification, Tester green finalization if tests changed, self-review, fresh complete-change review, exact-lease push, workflows, and configured GitHub review again.
-
-Immediately before the merge call, query remote default-branch OID and pull-request head OID. Require default branch to equal the reviewed comparison base and pull-request head to equal the exact locally reviewed, verified remote SHA. If the default branch advanced, repeat rebase, verification, review, and automation loops. Use the contract-defined merge command with an exact head-match guard so a concurrent change fails instead of merging an unreviewed commit.
+Immediately before merge, read [the rebase procedure](references/rebase.md) and satisfy its fresh-base and exact-head criterion. Then use the contract-defined merge operation.
 
 Completion requires:
 

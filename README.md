@@ -100,7 +100,7 @@ The delivery workflow is a generic, Codex-specific bundle for moving small, inde
 
 ### Role profiles and primary skills
 
-The TOML files under [`codex/agents`](codex/agents) are thin launch profiles. They identify the role, point it at one primary skill, and preserve the role boundary; they deliberately omit `model` and `model_reasoning_effort` so the Supervisor can route each bounded task from the issue's complexity and risk. The Reviewer remains read-only for production and test code, but may write one contract-designated branch-local Markdown file so pre-pull-request findings survive handoff and restart. The Implementor commits, pushes, and disposes those findings one at a time.
+The TOML files under [`codex/agents`](codex/agents) are thin launch profiles. They identify the role, point it at one primary skill, and preserve the role boundary; they deliberately omit `model` and `model_reasoning_effort` so the Supervisor can route each bounded task from the issue's complexity and risk. The Reviewer remains read-only for production and test code, but may write only the ignored local artifacts defined by its skill so fixed-snapshot review can resume after interruption. The Implementor records dispositions in that same snapshot protocol; those artifacts are never staged or published.
 
 | Codex agent | Profile | Primary skill | Role boundary |
 | --- | --- | --- | --- |
