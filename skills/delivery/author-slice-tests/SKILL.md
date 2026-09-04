@@ -18,7 +18,7 @@ The invoking Implementor must supply the delivery contract or its discoverable l
 
 ## Dependencies
 
-- Required internal: `$design-high-value-tests` for test-design judgment, `$verification-driven-delivery` for fidelity to the issue's Verification or approved green-baseline contract, and `$development-session-observability` for sparse markers when the Implementor supplies its command.
+- Required internal: `$design-high-value-tests` for test-design judgment, `$verification-driven-delivery` for fidelity to the issue's Verification or approved green-baseline contract, `$delivery-runtime-protocol` for local review recovery, and `$development-session-observability` for sparse markers when the Implementor supplies its command.
 - This role may receive findings from the internal `$review-delivery-slice` role; it never replaces that independent review.
 
 The Implementor must pass an available Codex model identifier and reasoning setting for this bounded assignment. The role has no model default and must not silently substitute one. The owner should select them from issue risk and record the rationale.
@@ -54,7 +54,7 @@ Verify expected branch and exact snapshot. Do not overwrite or silently include 
 
 ## Persist the receipt and stop
 
-For `red-contract` and `green-baseline`, map the handoff to review mode `test-contract`; for `green-finalization`, map it to `complete-change`. Once the exact resulting `HEAD` and comparison base are known, read [the local review artifact protocol](../review-delivery-slice/references/review-findings.md), verify `artifacts/reviews/` is Git-ignored, and write `verification.md` under `artifacts/reviews/issue-<number>/<mode>/<full-head-sha>/` before returning. Record the exact commands, discovery, results, fidelity, unexercised dependencies, and residual risk. Validate and reuse an existing matching receipt after interruption; preserve but do not trust a stale, partial, contradictory, or malformed one. Never stage, commit, push, stash, or clean these artifacts. A missing tracked repository review path must not block the handoff. Rebase-conflict mode returns its state to the controlling Implementor instead because its `HEAD` is not yet a review candidate.
+For `red-contract` and `green-baseline`, map the handoff to review mode `test-contract`; for `green-finalization`, map it to `complete-change`. Once the exact resulting `HEAD` and comparison base are known, load `$delivery-runtime-protocol` and apply its local-review-artifact branch. Verify the Implementor's ignore setup without changing it; if the path is not ignored, return that ordinary setup correction to the Implementor before writing. Write the matching `verification.md` before returning, recording exact commands, discovery, results, fidelity, unexercised dependencies, and residual risk. Rebase-conflict mode returns its state to the controlling Implementor instead because its `HEAD` is not yet a review candidate.
 
 Return to the Implementor:
 

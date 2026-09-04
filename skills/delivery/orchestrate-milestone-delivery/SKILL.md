@@ -60,7 +60,7 @@ There is no hard task-count ceiling. Keep the smallest useful frontier and prefe
 
 ## Route each bounded task
 
-Before every Planner, Implementor, Tester, or Reviewer spawn, read [model routing](references/model-routing.md). Pass its exact supported model and reasoning pair and persist the classification and rationale. An Implementor acting as a parent Supervisor follows the same protocol for every child. A spawn is ready only when its handoff records the pair and the evidence supporting it.
+Before every Planner, Implementor, Tester, or Reviewer spawn, load `$delivery-runtime-protocol` and apply its model-routing branch. Pass the resulting supported model and reasoning pair and persist the classification and rationale. An Implementor acting as a parent Supervisor follows the same protocol for every child. A spawn is ready only when its handoff records the pair and the evidence supporting it.
 
 ## Recover ownership before launching
 
@@ -71,7 +71,7 @@ Use Codex project and task tools before creating work:
 3. Query the issue's native linked branches and pull requests.
 4. Resume an existing owner whenever possible. If unavailable, recover from the linked remote branch and exact pushed SHA using `$deliver-issue-slice`.
 
-Temporary inter-agent review artifacts make the existing issue worktree part of recovery. Before replacing interrupted Tester or Reviewer work, have the recovered Implementor apply [the local review artifact protocol](../review-delivery-slice/references/review-findings.md) and inspect its exact-snapshot receipts. Preserve the worktree at least until the pull request is ready to merge; the remote branch remains the recovery source for committed product changes.
+Temporary inter-agent review artifacts make the existing issue worktree part of recovery. Before replacing interrupted Tester or Reviewer work, have the recovered Implementor load `$delivery-runtime-protocol`, apply its local-review-artifact branch, and inspect the exact-snapshot receipts. Preserve the worktree at least until the pull request is ready to merge; the remote branch remains the recovery source for committed product changes.
 
 Immediately before task creation, re-query assignee, project state, linked development items, native branch, pull request, and Codex task state. If ownership is ambiguous, fail closed instead of creating a duplicate. Assignment to a shared GitHub identity alone is not a unique claim; the native linked branch and durable Codex task identity are.
 
@@ -108,5 +108,5 @@ The target is complete only when its delivery issues are authoritatively closed,
 
 ## Dependencies
 
-- Internal: `$plan-delivery-slices`, `$deliver-issue-slice`, `$author-slice-tests`, `$review-delivery-slice`, `$design-high-value-tests`, `$verification-driven-delivery`, and `$development-session-observability`.
+- Internal: `$delivery-runtime-protocol`, `$plan-delivery-slices`, `$deliver-issue-slice`, `$author-slice-tests`, `$review-delivery-slice`, `$design-high-value-tests`, `$verification-driven-delivery`, and `$development-session-observability`.
 - External companion skills from [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills): `$to-tickets` when planning guidance is needed.

@@ -5,7 +5,7 @@ description: Review one fixed delivery-slice snapshot on independent Standards a
 
 # Review a delivery slice
 
-Review one fixed snapshot in the Implementor's worktree, persist actionable findings for that Implementor, and finish. Remain read-only for production code, test code, and Git state. The only writes allowed are the predictable local review artifacts defined below. Never stage, commit, push, mutate the issue or pull request, resolve review threads, or merge. The Implementor or Tester owns remediation, and a fresh Reviewer examines each resulting snapshot.
+Review one fixed snapshot in the Implementor's worktree, persist actionable findings for that Implementor, and finish. Remain read-only for production code, test code, and Git state. The only writes allowed are the predictable local review artifacts defined by `$delivery-runtime-protocol`. Never stage, commit, push, mutate the issue or pull request, resolve review threads, or merge. The Implementor or Tester owns remediation, and a fresh Reviewer examines each resulting snapshot.
 
 ## Load the consuming-repository contract
 
@@ -14,7 +14,7 @@ The Implementor must supply the delivery contract or its discoverable location. 
 ## Dependencies
 
 - External required companion: `$code-review` from [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills), preserving its independent Standards and Spec axes.
-- Internal required companions: `$design-high-value-tests` for test-design judgment, `$verification-driven-delivery` for the issue's Verification or approved green-baseline contract, and `$development-session-observability` for sparse markers when the Implementor supplies its command.
+- Internal required companions: `$design-high-value-tests` for test-design judgment, `$verification-driven-delivery` for the issue's Verification or approved green-baseline contract, `$delivery-runtime-protocol` for exact-snapshot artifact recovery, and `$development-session-observability` for sparse markers when the Implementor supplies its command.
 
 The invoking owner must pass an available Codex model identifier and reasoning setting for this bounded review. The role has no model default and must not silently substitute one. Standards and Spec sub-reviews are separate bounded spawns: pass each an explicit model and reasoning selected for the issue's risk and provide the complete snapshot and rationale.
 
@@ -30,12 +30,12 @@ The Implementor supplies:
 - immutable behavior-start SHA used for red or baseline provenance;
 - current comparison-base OID used to isolate this slice from intervening default-branch work;
 - worktree and branch, current `HEAD`, commits, verification evidence, and declared residual risks;
-- issue number and review mode, which determine the predictable local artifact path; and
+- issue number, review mode, and full current `HEAD`, which together determine the predictable local artifact path; and
 - any proposed infrastructure no-test exception and its alternative evidence.
 
 Recover omitted read-only facts from the repository and GitHub only when unambiguous. If the specification, behavior-start SHA, comparison base, or required contract is missing or contradictory, return a blocked review result rather than filling the gap.
 
-Read [the local review artifact protocol](references/review-findings.md). Resolve this snapshot to `artifacts/reviews/issue-<number>/<mode>/<full-head-sha>/`. Verify that `artifacts/reviews/` is ignored before writing. Validate any existing `request.md`, `verification.md`, `standards.md`, `spec.md`, and `result.md` against the exact issue, mode, `HEAD`, and comparison base. Return an already-complete valid result without duplicating review. Preserve stale or partial files as recovery evidence and resume only missing work.
+Load `$delivery-runtime-protocol` and apply its local-review-artifact branch. Verify the Implementor's ignore setup without changing it; when the path is not ignored, return that ordinary setup correction before writing. Validate current local state and every existing receipt against the exact issue, mode, `HEAD`, and comparison base. Return an already-complete valid result without duplicating review. Preserve stale or partial files as recovery evidence and resume only missing work.
 
 ## Pin the whole local snapshot
 
@@ -47,11 +47,11 @@ A branch comparison alone omits work in progress. Before reviewing, capture and 
 4. Inventory and read every relevant untracked file, which ordinary Git diffs omit. Treat the ignored local review directory as recovery evidence rather than implementation content.
 5. Record initial branch and status. Do not stage files merely to make review easier.
 
-The Implementor must not edit concurrently. Re-check `HEAD`, branch, index, worktree, and untracked implementation inventory before recording findings. If any differs from the pinned state, invalidate the result and request a fresh review of the new snapshot. Local artifact writes expected by the protocol do not invalidate the snapshot; record their before and after state so they cannot conceal another change.
+The Implementor must not edit concurrently. Re-check `HEAD`, branch, index, worktree, and untracked implementation inventory before recording findings. If any differs from the pinned state, invalidate the result and request a fresh review of the new snapshot. A reusable verdict requires committed implementation state with a clean index, tracked worktree, and relevant untracked inventory; ignored protocol artifacts are the only allowed local difference. When implementation state is dirty, record an incomplete result and return it for an Implementor-owned checkpoint rather than issuing a clean verdict. Record protocol-artifact state before and after review so those writes cannot conceal another change.
 
 ## Run the two axes independently
 
-Before delegation, require and validate `request.md` with `in-progress` status and the exact snapshot identities. Delegate Standards and Spec in parallel as `$code-review` requires, passing each the full pinned snapshot rather than only a comparison-base range. Use collaboration tasks with no inherited conversation and include every required source in each prompt. Pass explicit model and reasoning to each spawn; do not rely on role or host defaults. Assign only `standards.md` to the Standards reviewer and only `spec.md` to the Spec reviewer; each writes its completed result after revalidating the snapshot. Reuse a valid completed axis artifact after interruption and rerun only missing or invalid axes.
+Before delegation, require and validate `request.md` with `in-progress` status and the exact snapshot identities. Delegate Standards and Spec in parallel as `$code-review` requires, passing each the full pinned snapshot rather than only a comparison-base range. Use collaboration tasks with no inherited conversation and include every required source in each prompt. Pass explicit model and reasoning to each spawn; do not rely on role or host defaults. Assign only `standards.md` to the Standards reviewer and only `spec.md` to the Spec reviewer. Each axis creates its file with `in-progress` status after initial snapshot validation, records confirmed findings promptly, and marks it `complete` only after end-of-review revalidation. Reuse a valid completed axis artifact after interruption and rerun only missing or invalid axes.
 
 The `$code-review` workflow normally requires a non-empty diff. The only exception is a `test-contract` review of a behavior-preserving green baseline that adds no characterization code: report Standards as not applicable, treat that N/A as satisfied for this exception, and run an independent Spec assessment of the Agent Brief, approved baseline contract, commands, discovery, fidelity, and residual risk. An empty `complete-change` diff is not a deliverable.
 

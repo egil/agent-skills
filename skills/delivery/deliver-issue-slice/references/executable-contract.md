@@ -5,7 +5,7 @@ Choose the branch matching the approved change.
 ## Behavior-changing work
 
 1. Launch a short-lived Tester in `red-contract` mode on the issue worktree, passing the selected model and reasoning, Agent Brief, Verification contract, immutable behavior-start SHA, branch, and delivery contract.
-2. Leave test ownership with the Tester until the intended tests reach meaningful red for the protected behavior. Checkpoint and push its completed test code and evidence.
+2. Leave test ownership with the Tester until the intended tests reach meaningful red for the protected behavior. Commit and push the test checkpoint; preserve evidence in the commit body and the matching ignored `verification.md` receipt.
 3. Resolve the exact `test-contract` snapshot artifacts. Reuse a valid complete result for this `HEAD`; otherwise resume missing work or launch a Reviewer with the full handoff.
 4. Route findings to a fresh Tester and repeat exact-snapshot review until the test contract is clean.
 5. Implement the smallest coherent production change that makes the reviewed tests pass. Run focused and broader affected verification, then commit and push a recoverable implementation checkpoint.
@@ -22,6 +22,8 @@ A missing public surface is not meaningful red when tests cannot compile. Supply
 
 ## Infrastructure no-test exception
 
-Use this exception only when no deterministic automated boundary faithfully exercises the changed infrastructure risk. Before implementation, record the reason, alternative verification, and residual risk for complete-change review. Difficulty, slowness, and inconvenience do not qualify. Skip only inapplicable test-authoring and test-contract-review tasks; production verification, complete-change review, and every contract gate remain required.
+Use this exception only when no deterministic automated boundary faithfully exercises the changed infrastructure risk. Before implementation, record the reason, alternative verification, and residual risk for complete-change review. Difficulty, slowness, and inconvenience do not qualify. Skip only inapplicable test-authoring and test-contract-review tasks; production verification, complete-change review, and every applicable non-test gate remain required.
 
-This phase is complete when the test contract or approved exception is recorded, test-contract review is clean when applicable, production satisfies that contract, green finalization is complete, and the exact candidate plus evidence have been returned to the Implementor.
+For behavior-changing or behavior-preserving work, this phase is complete when the test contract is recorded, test-contract review is clean, production satisfies that contract, green finalization is complete, and the exact candidate plus evidence have been returned to the Implementor.
+
+For an infrastructure no-test exception, this phase is complete when the approved decision and residual risk are recorded, the production change passes its alternative verification and every applicable non-test gate, and the exact candidate plus evidence have been returned to the Implementor.

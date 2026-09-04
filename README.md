@@ -61,6 +61,9 @@ Each entry includes tags for quick scanning.
 - **orchestrate-milestone-delivery** — Coordinate a GitHub milestone or explicit issue set through small Codex-owned slices and merge: [skills/delivery/orchestrate-milestone-delivery/SKILL.md](skills/delivery/orchestrate-milestone-delivery/SKILL.md)<br>
   Tags: codex, github, orchestration, delivery, model-routing
 
+- **delivery-runtime-protocol** — Apply shared model-routing and ignored review-recovery rules for delivery roles: [skills/delivery/delivery-runtime-protocol/SKILL.md](skills/delivery/delivery-runtime-protocol/SKILL.md)<br>
+  Tags: codex, delivery, model-routing, review-recovery
+
 - **plan-delivery-slices** — Persist an oversized issue as small, independently deliverable GitHub child issues: [skills/delivery/plan-delivery-slices/SKILL.md](skills/delivery/plan-delivery-slices/SKILL.md)<br>
   Tags: codex, github, planning, issues, vertical-slices
 
@@ -96,11 +99,11 @@ Add `--global` to that command if the companion skills should be user-level defa
 
 ## Codex delivery bundle
 
-The delivery workflow is a generic, Codex-specific bundle for moving small, independently mergeable issue slices through planning, implementation, testing, review, and publication. It contains six owner-authored workflow packages (the five delivery roles plus session observability) and the two shared testing packages. The reusable skill and profile contents contain no consuming repository, organization, project, or user identity. A consuming repository supplies those details through its normal project instructions and issue-tracker adapter.
+The delivery workflow is a generic, Codex-specific bundle for moving small, independently mergeable issue slices through planning, implementation, testing, review, and publication. It contains five role skills plus four shared support skills: delivery runtime protocol, session observability, and two testing packages. The reusable skill and profile contents contain no consuming repository, organization, project, or user identity. A consuming repository supplies those details through its normal project instructions and issue-tracker adapter.
 
 ### Role profiles and primary skills
 
-The TOML files under [`codex/agents`](codex/agents) are thin launch profiles. They identify the role, point it at one primary skill, and preserve the role boundary; they deliberately omit `model` and `model_reasoning_effort` so the Supervisor can route each bounded task from the issue's complexity and risk. The Reviewer remains read-only for production and test code, but may write only the ignored local artifacts defined by its skill so fixed-snapshot review can resume after interruption. The Implementor records dispositions in that same snapshot protocol; those artifacts are never staged or published.
+The TOML files under [`codex/agents`](codex/agents) are thin launch profiles. They identify the role, point it at one primary skill, and preserve the role boundary; they deliberately omit `model` and `model_reasoning_effort` so the Supervisor can route each bounded task from the issue's complexity and risk. The Reviewer remains read-only for production and test code, but may write only the ignored local artifacts defined by `delivery-runtime-protocol` so fixed-snapshot review can resume after interruption. The Implementor records dispositions in that same snapshot protocol; those artifacts are never staged or published.
 
 | Codex agent | Profile | Primary skill | Role boundary |
 | --- | --- | --- | --- |
@@ -113,7 +116,7 @@ The TOML files under [`codex/agents`](codex/agents) are thin launch profiles. Th
 The workflow packages form this local dependency closure:
 
 - Delivery roles: `orchestrate-milestone-delivery`, `plan-delivery-slices`, `deliver-issue-slice`, `author-slice-tests`, and `review-delivery-slice`.
-- Shared local support: `development-session-observability`, `design-high-value-tests`, and `verification-driven-delivery`.
+- Shared local support: `delivery-runtime-protocol`, `development-session-observability`, `design-high-value-tests`, and `verification-driven-delivery`.
 - Every `$skill-name` reference in a delivery `SKILL.md` must resolve to one of those local packages or to an explicitly declared external dependency below. Run the validator after changing the bundle:
 
 ```shell
@@ -129,6 +132,7 @@ Install the skills with the Agent Skills CLI. Choose the local or global scope d
 ```shell
 npx skills@latest add egil/agent-skills \
   --skill orchestrate-milestone-delivery \
+  --skill delivery-runtime-protocol \
   --skill plan-delivery-slices \
   --skill deliver-issue-slice \
   --skill author-slice-tests \
