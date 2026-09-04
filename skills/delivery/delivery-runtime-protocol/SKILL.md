@@ -1,6 +1,6 @@
 ---
 name: delivery-runtime-protocol
-description: Apply shared Codex delivery rules for risk-based model routing and recoverable local review artifacts. Use when a delivery role selects a bounded agent model or creates, validates, resumes, or retires review receipts.
+description: Apply shared Codex delivery rules for risk-based model routing and recoverable local review artifacts. Use when a delivery role selects a bounded agent model or creates, validates, or resumes review receipts.
 ---
 
 # Delivery runtime protocol
@@ -10,7 +10,7 @@ Provide the shared runtime rules used across bounded delivery roles. The invokin
 Read only the branch required by the current handoff:
 
 - Before selecting or rerouting a bounded Planner, Implementor, Tester, or Reviewer, read [model routing](references/model-routing.md).
-- Before creating, validating, resuming, or retiring temporary inter-agent review state, read [local review artifacts](references/review-artifacts.md).
+- Before creating, validating, or resuming temporary inter-agent review state, read [local review artifacts](references/review-artifacts.md).
 
 ## Completion
 
