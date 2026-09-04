@@ -11,6 +11,12 @@ Treat tests as owned code whose purpose is to enable sustainable change. Protect
 
 Honor the user's requested workflow and the repository's instructions. Do not impose test-first implementation when the task is read-only or the user explicitly requests another sequence.
 
+## Test Project-Owned Behavior
+
+Give every permanent test a project-owned primary subject: an observable behavior, decision, configuration, adapter, or orchestration contract owned by the system under development. A language runtime, framework, SDK, managed platform, emulator, or external service may be a real collaborator when exercising it is necessary to expose that owned behavior.
+
+Do not write a test whose primary claim is that third-party software behaves as documented. Apply a failure-meaning check: if a failure would mainly mean the dependency violated its contract rather than the project did, rely on the dependency's own evidence or record explicitly scoped compatibility or hosted acceptance evidence instead. A compatibility test remains project-owned when it asks whether the project's adapter still works with an independently evolving provider through provider-owned artifacts or a faithful sandbox; it must not recreate the provider's implementation.
+
 ## Load References Selectively
 
 Start with this core workflow. Read only references that own a decision the task actually requires; usually one or two:
@@ -34,6 +40,8 @@ Do not load a reference just because the example happens to use its language or 
 Before designing or editing, state in one sentence:
 
 `When <observable scenario>, the system <observable outcome>.`
+
+Name the project-owned behavior and what a failure would mean. Reject a permanent test when its primary failure meaning belongs to a third-party guarantee rather than the system under development.
 
 For a bug, also state the regression mechanism: what incorrect behavior would return if the production change were reverted? If neither statement is clear, inspect requirements and production behavior before designing the test.
 
@@ -63,11 +71,11 @@ Prefer fewer collaborators as a component's importance or decision complexity gr
 
 ### 3. Choose the narrowest sufficient test level
 
-Choose by risk and dependency boundary, not by class or method:
+After establishing a project-owned primary subject, choose by risk and dependency boundary, not by class or method:
 
 - Use a unit test for important deterministic business behavior that can run without I/O or shared mutable state.
-- Use an integration test when confidence depends on real application wiring, serialization, persistence, framework configuration, or a managed dependency.
-- Use a contract test when compatibility with a separately evolving provider or consumer is the risk.
+- Use an integration test when project-owned behavior depends on real application wiring, serialization, persistence, framework configuration, or a managed dependency.
+- Use a contract test when the project's compatibility with a separately evolving provider or consumer is the risk.
 - Use an end-to-end test only when the critical risk exists across the assembled system and cannot be covered more cheaply below it.
 
 Do not repeat the same assertion mechanically at every level. Concentrate fast cases around domain rules, use focused integration coverage at boundaries, and keep deployed-path checks sparse.
@@ -106,7 +114,7 @@ Remove duplication and improve names while preserving observable behavior. A beh
 
 Evaluate every retained test on four dimensions:
 
-- **Regression protection:** Would a realistic defect in important behavior make it fail? Consider the amount, complexity, and domain significance of the code exercised, including consequential framework or library behavior.
+- **Regression protection:** Would a realistic defect in important project-owned behavior make it fail? Consider the amount, complexity, and domain significance of the code exercised, including behavior that emerges only through consequential framework or library integration.
 - **Refactoring resistance:** Does it survive behavior-preserving implementation changes?
 - **Fast feedback:** Is it quick and reliable enough for the stage where it runs?
 - **Maintainability:** Is its intent clear, setup proportionate, and ownership cost low? Include the operational cost of any external dependency.
@@ -135,6 +143,7 @@ Review important uncovered behavior and suspicious survivors individually.
 When implementation is authorized, run the smallest relevant test during iteration, then the broader affected suite. Keep valuable tests in the routine development cycle; a test that is never run provides no protection. Confirm the intended tests were discovered and executed; zero selected tests is not success. Report:
 
 - the behavior protected;
+- its project-owned primary subject and failure meaning;
 - the chosen test level and why;
 - the exact verification commands and results;
 - any dependency or environment not exercised;
