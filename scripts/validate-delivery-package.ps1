@@ -142,7 +142,7 @@ foreach ($agent in $agentMap) {
     }
 
     # The runtime may need to write build or test artifacts. The Reviewer role's
-    # code-read-only boundary and single configured findings-file exception are
+    # code-read-only boundary and ignored review-artifact exception are
     # the portable safety boundary.
 }
 

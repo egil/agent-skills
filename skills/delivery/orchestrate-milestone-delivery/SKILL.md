@@ -1,6 +1,6 @@
 ---
 name: orchestrate-milestone-delivery
-description: Supervise a named GitHub milestone or explicitly scoped set of issues through small Codex-owned slices and merged, production-ready pull requests. Use for coordination only; do not use this role to implement, test, or review a slice.
+description: Supervise a GitHub milestone or explicit issue set through independently mergeable slices and completed pull requests.
 ---
 
 # Orchestrate milestone delivery
@@ -17,7 +17,7 @@ Before planning or mutation, locate the delivery contract through an applicable 
 - the default branch, branch naming rule, native issue-linked-branch procedure, protected-branch rules, and permitted merge strategy;
 - Codex project, task, and worktree conventions, including the upward status-signal format;
 - the issue Agent Brief format, verification contract, test/build/coverage gates, and any green-baseline policy;
-- the durable issue or pull-request phase-checkpoint location and format used to resume after task loss or compaction, plus the branch-local review-findings path and retention policy;
+- the durable issue or pull-request phase-checkpoint location and format used to resume after task loss or compaction, plus the issue-worktree lifecycle for ignored temporary review artifacts; no tracked repository review path is required;
 - required pull-request workflows, how completion is proven for the current head, their bounded wait budgets, and their queued, stuck, cancelled, or unavailable paths;
 - any configured GitHub pull-request automation, its trigger, how a review is proven to cover the current head, its bounded wait budget, its unavailable or non-response path, and the required comment and thread-resolution protocol; and
 - the authorization boundary for issue, branch, pull-request, and merge mutations, including deployment or release exclusions.
@@ -58,27 +58,9 @@ Rank unblocked slices by evidence-backed foundations that unlock work, transitiv
 
 There is no hard task-count ceiling. Keep the smallest useful frontier and prefer finishing nearly complete work. Parallelize only when slices have no dependency, shared unresolved design decision, overlapping code ownership, incompatible schema or migration work, shared test-infrastructure change, or likely interface influence. Stop expanding when coordination and reconciliation become the limiting factor.
 
-## Select models at each bounded spawn
+## Route each bounded task
 
-The Supervisor selects and passes both an available Codex model identifier and a reasoning setting for every bounded Planner, Implementor, Tester, or Reviewer spawn. Role skills have no model default and must not silently substitute one. An Implementor acting as a parent supervisor follows the same rule for its child tasks.
-
-Use this Codex routing table as the starting point, then record the evidence and any deliberate deviation:
-
-| Issue evidence | Model and reasoning |
-| --- | --- |
-| Mechanical, repetitive, or narrowly scripted | `gpt-5.6-luna`, `low` or `medium` |
-| Tests from precise acceptance criteria | `gpt-5.6-luna`, `medium` |
-| Well-specified but lengthy or exhaustive | `gpt-5.6-luna`, `high` or `max` |
-| Normal feature implementation | `gpt-5.6-terra`, `medium` |
-| Routine debugging or review | `gpt-5.6-terra`, `medium` |
-| Unfamiliar or unclear architecture | `gpt-5.6-sol`, `medium` |
-| Ambiguous cross-cutting, concurrent, or distributed behavior | `gpt-5.6-sol`, `medium` or `high` |
-| Architecture, security, or difficult root cause | `gpt-5.6-sol`, `high` |
-| Exceptionally hard work | `gpt-5.6-sol`, `max` |
-
-Pass both the exact model and reasoning value on every Codex spawn. Do not rely on a role, host, or parent default. Record the issue classification, selected pair, rationale, and any deviation in the durable handoff or session telemetry when available.
-
-Reroute only at a clean bounded boundary and on evidence. Escalate when two consecutive verification/fix cycles produce no new diagnosis, two distinct approaches fail the same acceptance behavior, a reviewer identifies architectural/security/distributed risk, the task crosses its slice boundary, or the agent cannot state a testable hypothesis. After two such cycles, circuit-break: preserve and push the recoverable checkpoint, stop further retries, and send `blocked` or `human-action` with the evidence so the Supervisor can choose a new model, re-plan, or request a decision. Downgrade only for a new phase whose evidence is routine; never change a running task's model invisibly.
+Before every Planner, Implementor, Tester, or Reviewer spawn, read [model routing](references/model-routing.md). Pass its exact supported model and reasoning pair and persist the classification and rationale. An Implementor acting as a parent Supervisor follows the same protocol for every child. A spawn is ready only when its handoff records the pair and the evidence supporting it.
 
 ## Recover ownership before launching
 
@@ -88,6 +70,8 @@ Use Codex project and task tools before creating work:
 2. List recent and pinned Codex tasks and inspect plausible owners using a deterministic issue-bearing title.
 3. Query the issue's native linked branches and pull requests.
 4. Resume an existing owner whenever possible. If unavailable, recover from the linked remote branch and exact pushed SHA using `$deliver-issue-slice`.
+
+Temporary inter-agent review artifacts make the existing issue worktree part of recovery. Before replacing interrupted Tester or Reviewer work, have the recovered Implementor apply [the local review artifact protocol](../review-delivery-slice/references/review-findings.md) and inspect its exact-snapshot receipts. Preserve the worktree at least until the pull request is ready to merge; the remote branch remains the recovery source for committed product changes.
 
 Immediately before task creation, re-query assignee, project state, linked development items, native branch, pull request, and Codex task state. If ownership is ambiguous, fail closed instead of creating a duplicate. Assignment to a shared GitHub identity alone is not a unique claim; the native linked branch and durable Codex task identity are.
 
@@ -126,7 +110,3 @@ The target is complete only when its delivery issues are authoritatively closed,
 
 - Internal: `$plan-delivery-slices`, `$deliver-issue-slice`, `$author-slice-tests`, `$review-delivery-slice`, `$design-high-value-tests`, `$verification-driven-delivery`, and `$development-session-observability`.
 - External companion skills from [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills): `$to-tickets` when planning guidance is needed.
-
-## Reissue
-
-Invoke `$orchestrate-milestone-delivery` and name the milestone or explicit issue scope. Example: use it to deliver the named GitHub milestone through merged, production-ready slices. Do not deploy or release.
