@@ -30,6 +30,7 @@ Use these symptoms to diagnose value and coupling. Do not rewrite or delete a te
 | A concrete class is partially mocked | Logic and external communication share one responsibility | Split the deterministic logic from the gateway and mock only the owned boundary |
 | Every class has a single-implementation interface | Mockability or speculative flexibility has become architecture | Keep in-process and managed dependencies concrete; introduce interfaces for real substitution or unmanaged boundaries |
 | Every branch or precondition gets a dedicated test | Coverage substitutes for domain significance | Test important invariants; let trivial safeguards and fail-fast wiring remain indirect |
+| A test failure would only mean a runtime, framework, SDK, platform, or service behaved differently from its documentation | A third-party guarantee has been made the product's test subject | Remove the duplicated guarantee; retain a project-owned application outcome or adapter-compatibility check, or record one-time hosted evidence |
 
 ## Review a Suite by Behavior
 
