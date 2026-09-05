@@ -101,9 +101,13 @@ Add `--global` to that command if the companion skills should be user-level defa
 
 The delivery workflow is a generic, Codex-specific bundle for moving small, independently mergeable issue slices through planning, implementation, testing, review, and publication. It contains five role skills plus four shared support skills: delivery runtime protocol, session observability, and two testing packages. The reusable skill and profile contents contain no consuming repository, organization, project, or user identity. A consuming repository supplies those details through its normal project instructions and issue-tracker adapter.
 
+On first invocation, the Supervisor asks whether to pursue the milestone autonomously or pause after each completed issue for planning with the user, unless that choice is already explicit. It saves the mode for recovery and nested supervisors. Autonomous mode keeps ready work active and can use a supported run-scoped reminder; guided mode waits for the user's next-step direction between issues.
+
 ### Role profiles and primary skills
 
-The TOML files under [`codex/agents`](codex/agents) are thin launch profiles. They identify the role, point it at one primary skill, and preserve the role boundary; they deliberately omit `model` and `model_reasoning_effort` so the Supervisor can route each bounded task from the issue's complexity and risk. The Reviewer remains read-only for production and test code, but may write only the ignored local artifacts defined by `delivery-runtime-protocol` so fixed-snapshot review can resume after interruption. The Implementor records dispositions in that same snapshot protocol; those artifacts are never staged or published.
+The TOML files under [`codex/agents`](codex/agents) are thin launch profiles. They identify the role, point it at one primary skill, and preserve the role boundary; they deliberately omit `model` and `model_reasoning_effort` so explicit spawn settings can apply. Every parent selects both settings through the shared [model-routing policy](skills/delivery/delivery-runtime-protocol/references/model-routing.md), which also owns escalation, the run-wide worker limit, and verification limits. Check the effective launch settings to prevent unintended inheritance from an expensive parent.
+
+The Reviewer remains read-only for production and test code, but may write only the ignored local artifacts defined by `delivery-runtime-protocol` so fixed-snapshot review can resume after interruption. The Implementor records dispositions in that same snapshot protocol; those artifacts are never staged or published.
 
 | Codex agent | Profile | Primary skill | Role boundary |
 | --- | --- | --- | --- |

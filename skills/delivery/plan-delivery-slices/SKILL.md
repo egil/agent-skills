@@ -29,7 +29,8 @@ Require these inputs from the delegating task:
 - the parent or dependent issue and its complete Agent Brief;
 - the explicitly selected milestone or other durable delivery scope;
 - why decomposition or a prerequisite is needed;
-- known dependency and ownership boundaries; and
+- known dependency and ownership boundaries;
+- effective model and reasoning pair, evidence-backed routing rationale, and worker allocation selected through `$delivery-runtime-protocol`; and
 - the consuming-repository delivery contract or its discoverable location.
 
 Verify the full issue body and comments, existing native sub-issues and dependencies, milestone, project item, assignees, linked branches and pull requests, checks, and related Codex tasks. Paginate every relationship and reconcile any reported total count; a successful default-sized page is not complete evidence. Inspect the repository and domain documentation only far enough to make the slices accurate. Immediately before creating anything, re-query GitHub for existing matching children or prerequisites and reuse or reconcile them instead of creating duplicates.

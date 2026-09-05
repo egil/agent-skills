@@ -9,14 +9,14 @@ Provide the shared runtime rules used across bounded delivery roles. The invokin
 
 Read only the branch required by the current handoff:
 
-- Before selecting or rerouting a bounded Planner, Implementor, Tester, or Reviewer, read [model routing](references/model-routing.md).
+- Before selecting a Supervisor model or spawning or rerouting any bounded role or review axis, read [model routing](references/model-routing.md) for classification, escalation, worker allocation, and verification limits.
 - Before creating, validating, or resuming temporary inter-agent review state, read [local review artifacts](references/review-artifacts.md).
 
 ## Completion
 
 The selected branch is complete only when:
 
-- model routing records an available model and reasoning pair, evidence-backed classification, rationale, and any deliberate deviation; or
+- model routing records an effective supported model and reasoning pair, evidence-backed classification, rationale, any deliberate deviation, worker allocation, and verification boundary; or
 - local review recovery validates the current committed snapshot and each applicable receipt by content, then either reuses a complete result or identifies the exact missing work to resume.
 
 Return to the invoking delivery role after completing the selected branch.
