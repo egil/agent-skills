@@ -13,6 +13,8 @@ Classify by ambiguity, risk, and required judgment. Terra Medium is the cost-con
 | Concurrency, consistency, migration, or security-sensitive review | `gpt-6-astra`, `high` |
 | Hard problem still unresolved after productive investigation | `gpt-6-astra`, `high`, then `xhigh` if needed |
 
+`xhigh` means Extra High reasoning effort and is supported by [GPT-6 Astra](https://developers.openai.com/api/docs/models/gpt-6-astra). Validate the selected pair against the current runtime before launch as described below.
+
 Start directly with Astra Medium for an unclear ordering or consistency bug or an architectural change, including Orleans/Azure work. Sol is an optional choice for bounded demanding work, never a mandatory step before Astra. Try Astra Medium before routinely increasing Sol to `max`.
 
 Use the lowest effort that delivers the required judgment and verification. Keep repetitive work at modest effort even when lengthy. `max` and `ultra` are outside the default policy; use them only when supported and a recorded unresolved problem justifies their cost.
