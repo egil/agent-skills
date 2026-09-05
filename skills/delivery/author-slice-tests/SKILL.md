@@ -21,7 +21,7 @@ The invoking Implementor must supply the delivery contract or its discoverable l
 - Required internal: `$design-high-value-tests` for test-design judgment, `$verification-driven-delivery` for fidelity to the issue's Verification or approved green-baseline contract, `$delivery-runtime-protocol` for local review recovery, and `$development-session-observability` for sparse markers when the Implementor supplies its command.
 - This role may receive findings from the internal `$review-delivery-slice` role; it never replaces that independent review.
 
-The Implementor must pass an available Codex model identifier and reasoning setting for this bounded assignment. The role has no model default and must not silently substitute one. The owner should select them from issue risk and record the rationale.
+Load `$delivery-runtime-protocol`'s model-routing branch to validate the Implementor's selected pair, rationale, worker allocation, and verification boundary. Return a stalled assignment through its reclassification handoff.
 
 When a marker command is supplied, load `$development-session-observability` and emit material phases, work cycles, and quality results without delaying testing. Codex owns native usage collection; never estimate credits.
 

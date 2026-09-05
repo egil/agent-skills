@@ -27,11 +27,11 @@ If the contract or assignment omits a required value, stop before the affected m
 - Internal: `$orchestrate-milestone-delivery` for linked-branch, provisioning, and project-state protocol; `$delivery-runtime-protocol` for model routing and local review recovery; `$plan-delivery-slices`, `$author-slice-tests`, `$review-delivery-slice`, `$design-high-value-tests`, `$verification-driven-delivery`, and `$development-session-observability`.
 - External companion skills from [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills): `$to-tickets` when planning is required and `$code-review` through the Reviewer.
 
-Before creating a bounded Planner, Tester, or Reviewer task, load `$delivery-runtime-protocol` and apply its model-routing branch. Pass the selected model and reasoning pair and record its classification and rationale. An Implementor that becomes a parent Supervisor applies the same protocol to every child.
+Load `$delivery-runtime-protocol` and apply its model-routing branch to the assigned model and every bounded Planner, Tester, or Reviewer handoff. Pass the effective supported model and reasoning pair, evidence-backed rationale, shared worker allocation, and verification boundary. An Implementor that becomes a parent Supervisor applies the same protocol to every child.
 
 Load `$development-session-observability` and inherit the Supervisor's stable run ID and issue work item. When supplied, use the marker command only for material semantic transitions and pass it to bounded children. Do not create ledgers, summarize telemetry, or duplicate Codex-native usage. Telemetry must not delay delivery or cross the review-reporting boundary.
 
-Reroute only at a clean bounded boundary. Apply the circuit-break in `$delivery-runtime-protocol`: preserve role-owned recovery state, push only a permitted committed code checkpoint, keep ignored review receipts local, and report `blocked` or `human-action` rather than repeatedly retrying the same failing assignment. Never change a running task's model invisibly.
+Apply the protocol's reclassification handoff when work stalls. Reroute a bounded child within the assigned allocation, or return your own stalled assignment to the Supervisor with recovery evidence. Reserve human-action signals for actual decisions or authorization gaps.
 
 An explicit assignment to deliver issue `#N` through merge authorizes only the ordinary operations required by the contract: work on the issue's own linked branch and worktree, commit and push checkpoints, publish and update its pull request, rebase its own branch with exact lease protection, reply to review, and perform the permitted merge once every gate is clean. It does not authorize deployment, release, bypassing protections, mutating another issue's branch, creating a pull-request stack, destructive cleanup, or unrelated tracker work.
 
@@ -59,9 +59,9 @@ If the issue contains multiple independently mergeable vertical slices:
 
 1. Stop implementation and invoke `$plan-delivery-slices` through a bounded collaboration task so each slice becomes a durable GitHub child issue with its own brief, Verification or green-baseline contract, scope, dependencies, project state, and readiness state.
 2. Notify the immediate Supervisor once with `decomposed` and the child identifiers and graph.
-3. Become a non-coding parent Supervisor. For each child, apply `$orchestrate-milestone-delivery`'s linked-branch, queued-task, detached-worktree, project-state, and explicit model/reasoning protocol. Never implement a child on the parent's branch or worktree.
-4. Keep the smallest useful frontier. Parallelize only children with no dependency, no overlapping ownership, no shared unresolved design decision, no incompatible schema or migration work, no shared test-infrastructure change, and no likely interface influence. Dependent children wait for blockers to merge into updated default branch.
-5. Receive only each child's `completed`, `decomposed`, `blocked`, or `human-action` signal; keep its testing and review traffic inside that child. Close the parent only after every child has closed through its merged pull request and the parent's acceptance boundary is fulfilled. Record child pull requests in the closing comment and report parent `completed` to the Supervisor.
+3. Become a non-coding parent Supervisor. For each child, apply `$orchestrate-milestone-delivery`'s linked-branch, queued-task, detached-worktree, project-state, and model-routing protocol. Inherit the saved supervision mode and shared worker allocation. Never implement a child on the parent's branch or worktree.
+4. Follow the Supervisor's frontier and supervision-mode rules. In guided mode, send a `planning-checkpoint` for each completed child through the immediate Supervisor to the top-level Supervisor and wait for the user's next-step direction before launching another child. Dependent children wait for blockers to merge into updated default branch.
+5. Receive only each child's `completed`, `decomposed`, `planning-checkpoint`, `blocked`, or `human-action` signal; keep its testing and review traffic inside that child. Relay nested planning checkpoints to the top-level Supervisor. Close the parent only after every child has closed through its merged pull request and the parent's acceptance boundary is fulfilled. Record child pull requests in the closing comment and report parent `completed` to the Supervisor.
 
 Do not split into horizontal layers, unsafe partial behavior, or speculative abstractions. If a finding or discovery materially expands the slice, checkpoint recoverable work and return to planning instead of growing a long implementation and review cycle.
 
@@ -122,6 +122,7 @@ Then send the immediate Supervisor only the canonical `completed` result and ide
 Send signals only to the immediate Supervisor, which bubbles them to the top-level Supervisor:
 
 - `decomposed`: child issue identifiers and graph;
+- `planning-checkpoint`: in guided mode, a completed child's issue and pull-request result, remaining dependencies, and proposed next step for planning with the user;
 - `human-action`: one concrete decision or human implementation request with minimum options and evidence;
 - `blocked`: exact blocker and durable checkpoint; or
 - `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, and automatic issue closure.
