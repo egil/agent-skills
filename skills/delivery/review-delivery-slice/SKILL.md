@@ -16,7 +16,7 @@ The Implementor must supply the delivery contract or its discoverable location. 
 - External required companion: `$code-review` from [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills), preserving its independent Standards and Spec axes.
 - Internal required companions: `$design-high-value-tests` for test-design judgment, `$verification-driven-delivery` for the issue's Verification or approved green-baseline contract, `$delivery-runtime-protocol` for exact-snapshot artifact recovery, and `$development-session-observability` for sparse markers when the Implementor supplies its command.
 
-Load `$delivery-runtime-protocol`'s model-routing branch to validate the Implementor's selected pair, rationale, worker allocation, and verification boundary. Apply that branch separately to each Standards and Spec spawn, including its escalation and check limits. Each axis assesses the whole assigned snapshot, so classify its risk from that scope.
+Load `$delivery-runtime-protocol`'s model-routing branch to validate the required model-routing handoff below. Apply that branch separately to each Standards and Spec spawn, including its escalation and check limits. Each axis assesses the whole assigned snapshot, so classify its risk from that scope.
 
 When a marker command is supplied, load `$development-session-observability` and emit only material review phases and quality results. Do not create an evidence ledger, put findings or source content in markers, or estimate unavailable usage.
 
@@ -25,6 +25,7 @@ When a marker command is supplied, load `$development-session-observability` and
 The Implementor supplies:
 
 - mode: `test-contract` or `complete-change`;
+- model-routing handoff: effective model and reasoning pair, evidence-backed rationale, shared worker allocation, and verification boundary;
 - issue and authoritative Agent Brief;
 - Verification contract for behavior-changing work, or approved green-baseline contract for behavior-preserving work;
 - immutable behavior-start SHA used for red or baseline provenance;
@@ -33,7 +34,7 @@ The Implementor supplies:
 - issue number, review mode, and full current `HEAD`, which together determine the predictable local artifact path; and
 - any proposed infrastructure no-test exception and its alternative evidence.
 
-Recover omitted read-only facts from the repository and GitHub only when unambiguous. If the specification, behavior-start SHA, comparison base, or required contract is missing or contradictory, return a blocked review result rather than filling the gap.
+Recover omitted read-only facts from the repository and GitHub only when unambiguous. Return missing or contradictory model-routing inputs to the Implementor before review or axis delegation. If the specification, behavior-start SHA, comparison base, or required contract is missing or contradictory, return a blocked review result rather than filling the gap.
 
 Load `$delivery-runtime-protocol` and apply its local-review-artifact branch. Verify the Implementor's ignore setup without changing it; when the path is not ignored, return that ordinary setup correction before writing. Validate current local state and every existing receipt against the exact issue, mode, `HEAD`, and comparison base. Return an already-complete valid result without duplicating review. Preserve stale or partial files as recovery evidence and resume only missing work.
 
