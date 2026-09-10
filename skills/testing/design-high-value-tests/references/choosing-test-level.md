@@ -1,16 +1,18 @@
 # Choosing the Test Level
 
-Choose a test level from the risk being addressed, not from a preferred pyramid shape or the name of the production type.
+Choose a test level from the project-owned risk being addressed, not from a preferred pyramid shape or the name of the production type. A third-party runtime, framework, SDK, platform, or service may participate in a test without becoming its primary subject. If the failure would mainly mean that dependency did not behave as documented, use its own evidence or explicitly scoped compatibility or hosted acceptance evidence instead of a permanent product test.
 
 A unit test verifies one cohesive unit of behavior, runs quickly, and is isolated from other tests. It may exercise several real in-process classes. Reserve the integration label for real boundary or composition evidence, use more specific labels such as component or contract when helpful, and treat a merely slow in-memory test according to its actual feedback cost. Classification is secondary to honest evidence and pipeline placement.
 
 ## Decision Sequence
 
 1. Name the observable failure that matters.
-2. Identify the lowest boundary at which that failure can be detected faithfully.
-3. Ask whether replacing any dependency would remove the behavior or compatibility risk being tested.
-4. Choose the fastest level that retains that risk.
-5. Add a higher-level test only for a distinct assembly, configuration, protocol, or deployment risk.
+2. Name the project-owned behavior, configuration, adapter, or orchestration contract whose defect would cause it.
+3. Stop if the primary failure meaning belongs only to a third-party guarantee.
+4. Identify the lowest boundary at which the project-owned failure can be detected faithfully.
+5. Ask whether replacing any dependency would remove the behavior or compatibility risk being tested.
+6. Choose the fastest level that retains that risk.
+7. Add a higher-level test only for a distinct project-owned assembly, configuration, protocol, or deployment risk.
 
 ## Level Guide
 
@@ -18,8 +20,8 @@ A unit test verifies one cohesive unit of behavior, runs quickly, and is isolate
 | --- | --- | --- | --- |
 | Unit | Business rules, calculations, state transitions, policies | Real in-process collaborators; deterministic inputs | I/O, shared state, framework bootstrapping, assertions about internal calls |
 | Component/application | A UI component or locally assembled application slice | Real local composition; outer I/O replaced at explicit boundaries | Cosmetic DOM or internal-layer assertions; claims about a replaced provider |
-| Integration | Persistence, serialization, dependency injection, hosted pipelines, framework behavior | Real application wiring and real managed dependencies where practical | Replacing the very technology whose behavior creates the risk |
-| Contract | Protocol shape or semantics across independently released boundaries | Provider artifacts, protocol fixtures, schema validation, or a faithful sandbox | Treating a hand-written mock as proof of provider compatibility |
+| Integration | Application behavior dependent on persistence, serialization, dependency injection, hosted pipelines, or framework configuration | Real application wiring and real managed dependencies where practical | Replacing the technology required by the owned risk; asserting documented framework guarantees as the outcome |
+| Contract | The project's protocol compatibility across independently released boundaries | Provider artifacts, protocol fixtures, schema validation, or a faithful sandbox | Treating a hand-written mock as proof of provider compatibility; recreating provider implementation behavior |
 | End-to-end | A critical journey whose risk emerges only in the assembled or deployed system | The smallest path across real components needed to demonstrate the journey | Exhaustive edge-case matrices, fragile UI detail assertions, duplication of domain cases |
 
 Classify a test by what it actually executes, not its folder. A test that starts no process but accesses a real database is an integration test. A test that constructs several domain objects in memory may still be a unit test.
@@ -49,7 +51,7 @@ Move upward only when a lower level cannot establish confidence in something imp
 - dependency-injection and middleware composition;
 - provider-consumer compatibility;
 - routing, authentication, browser behavior, or deployment configuration.
-- framework or SDK upgrade behavior that narrow tests bypass because they do not execute the upgraded surface.
+- application compatibility across a framework or SDK upgrade when narrow tests bypass the surface the project actually uses.
 
 Move downward when the higher-level test merely enumerates deterministic business cases. Extract the decision into a testable core and retain one higher-level wiring example if needed.
 

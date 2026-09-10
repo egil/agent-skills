@@ -1,0 +1,6 @@
+interface:
+  display_name: "Plan Delivery Slices"
+  short_description: "Create durable GitHub delivery slices"
+  default_prompt: "Use $plan-delivery-slices to decompose the assigned GitHub issue into durable, independently deliverable child issues."
+policy:
+  allow_implicit_invocation: false
