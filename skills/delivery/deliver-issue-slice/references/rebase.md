@@ -12,8 +12,8 @@ For a conflicted rebase:
 4. Leave mixed-ownership or decision-bearing conflicts unresolved. Preserve evidence, abort only as the contract authorizes, verify the published branch is unchanged, and report `blocked` or `human-action`.
 5. After resolution, finish the rebase, apply owner self-review, preserve the recovery checkpoint with an exact lease, and rerun applicable gates plus complete-change review.
 
-Every rebase that changes `HEAD` invalidates the old snapshot verdict. Rerun applicable verification, Tester green finalization when tests changed, self-review, complete-change review, exact-lease push, workflows, and configured GitHub review.
+Every rebase that changes `HEAD` invalidates the old snapshot verdict, not the standing authorization for this owned issue branch. Rerun applicable verification, Tester green finalization when tests changed, self-review, complete-change review, exact-lease push, workflows, and configured GitHub review.
 
-Immediately before the merge call, require the remote default-branch OID to equal the reviewed comparison base and the pull-request head to equal the locally reviewed and verified SHA. When default advances, repeat the rebase and all invalidated evidence. Use the contract's merge command with an exact head-match guard.
+Immediately before the merge call, require the remote default-branch OID to equal the reviewed comparison base and the pull-request head to equal the locally reviewed and verified SHA. When default advances, repeat the rebase and all invalidated evidence. Execute the contract's merge command with an exact head-match guard under the standing grant; this is the next action, not a new consent checkpoint. Verify remote merge state and the resulting OID before reporting completion. A rejected head guard requires reconciliation and renewed readiness evidence, not renewed consent to the same in-scope merge.
 
 The rebase phase is complete only when the current remote head and default base exactly match the reviewed identities and every invalidated gate has fresh evidence.

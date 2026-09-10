@@ -29,11 +29,15 @@ If the contract or assignment omits a required value, stop before the affected m
 
 Load `$delivery-runtime-protocol` and apply its model-routing branch to the assigned model and every bounded Planner, Tester, or Reviewer handoff. Pass the effective supported model and reasoning pair, evidence-backed rationale, shared worker allocation, and verification boundary. An Implementor that becomes a parent Supervisor applies the same protocol to every child.
 
+Apply the protocol's [message-driven waiting](../delivery-runtime-protocol/references/message-driven-waiting.md) branch when delegating or awaiting a Planner, Tester, Reviewer, or external gate. Keep result delivery inside this issue's ownership chain. A plain wait timeout does not justify repeated status reads, progress nudges, replacement workers, or rerunning verification. Preserve all role-replacement rules, exact-snapshot receipts, and required checks below.
+
 Load `$development-session-observability` and inherit the Supervisor's stable run ID and issue work item. When supplied, use the marker command only for material semantic transitions and pass it to bounded children. Do not create ledgers, summarize telemetry, or duplicate Codex-native usage. Telemetry must not delay delivery or cross the review-reporting boundary.
 
 Apply the protocol's reclassification handoff when work stalls. Reroute a bounded child within the assigned allocation, or return your own stalled assignment to the Supervisor with recovery evidence. Reserve human-action signals for actual decisions or authorization gaps.
 
-An explicit assignment to deliver issue `#N` through merge authorizes only the ordinary operations required by the contract: work on the issue's own linked branch and worktree, commit and push checkpoints, publish and update its pull request, rebase its own branch with exact lease protection, reply to review, and perform the permitted merge once every gate is clean. It does not authorize deployment, release, bypassing protections, mutating another issue's branch, creating a pull-request stack, destructive cleanup, or unrelated tracker work.
+A direct assignment or inherited user-approved mandate to deliver issue `#N` through merge authorizes the ordinary operations required by the contract: work on the issue's own linked branch and worktree, commit and push checkpoints, publish and update its pull request, rebase its own branch with exact lease protection, reply to review, and perform the permitted merge once every gate is clean. It does not authorize deployment, release, bypassing protections, mutating another issue's branch, creating a pull-request stack, destructive cleanup, or unrelated tracker work.
+
+Apply [standing delivery authorization](../delivery-runtime-protocol/references/standing-authorization.md) before requesting push/merge consent. Recover the grant from the assignment or existing checkpoint and carry it into mutating child/recovery handoffs. Once each stage's checks pass, perform its push, PR transition, or merge without renewed user confirmation. Keep publishing and merging with this Implementor; delegate only role-owned operations. A recovered or fresh worker inherits the same authorized endpoint rather than requiring a new direct user instruction.
 
 Before a GitHub mutation, verify the contract-defined identity with `gh auth status --hostname <github-host>` and `gh api --hostname <github-host> user --jq .login`. Do not change Git credentials, request or reveal a token, or continue after incomplete or inconsistent identity evidence.
 
@@ -75,7 +79,7 @@ Checkpoint at least whenever a code-writing task finishes its bounded part:
 - preserve objective, issue and contract context, material decisions, resulting changes, rejected paths or discoveries, and exact meaningful-red, green, or alternative evidence in the commit message body; and
 - keep an intentionally red Tester checkpoint temporary and clearly marked. Do not publish a pull request from that state.
 
-Before complete-change review, curate temporary red, fixup, and correction checkpoints into coherent commits that each leave the repository valid. Rewriting a pushed issue branch requires the contract's exact lease: verify its current remote SHA immediately before pushing, force only with an exact expected ref-and-SHA lease when authorized, and verify local/remote equality. Never rewrite a protected or ambiguously owned branch.
+Before complete-change review, curate temporary red, fixup, and correction checkpoints into coherent commits that each leave the repository valid. Rewriting a pushed issue branch requires the contract's exact lease: verify its current remote SHA immediately before pushing, use only an exact expected ref-and-SHA lease under the existing standing authorization for that permitted rewrite, and verify local/remote equality. Never rewrite a protected or ambiguously owned branch.
 
 After every bounded Planner, Tester, Reviewer, or Implementor phase, the issue-owning Implementor writes the contract-defined durable phase checkpoint before starting the next phase. It records a monotonic phase or sequence, issue and branch, exact covered SHA and comparison base, task or run identity when available, result (`clean`, `findings`, `blocked`, or `human-action`), evidence or finding location, and the deterministic next owner or action. Reviewer and Tester roles return their receipts to the Implementor and do not mutate the tracker themselves. Do not put implementation chatter into the Supervisor channel; the durable checkpoint is recovery state, not an upward progress signal.
 
@@ -106,7 +110,7 @@ After the local stage is complete, read [the pull-request review procedure](refe
 
 ## Rebase and merge
 
-Immediately before merge, read [the rebase procedure](references/rebase.md) and satisfy its fresh-base and exact-head criterion. Then use the contract-defined merge operation.
+Immediately before merge, read [the rebase procedure](references/rebase.md) and satisfy its fresh-base and exact-head criterion. Then execute the contract-defined merge operation under the standing grant, with its exact head-match guard, and verify the result. Do not stop at ready-to-merge or ask the user to reconfirm an authorized merge.
 
 Completion requires:
 

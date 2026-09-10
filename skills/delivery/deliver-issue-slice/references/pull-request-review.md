@@ -1,6 +1,6 @@
 # Pull-request checks and review
 
-Enter this phase only with a local-review-clean candidate whose local and remote heads are equal.
+Enter this phase only with a local-review-clean candidate whose local and remote heads are equal. Use the inherited standing grant for the PR creation, updates, reviewed pushes, and ready transition below; perform each at its required stage without another user-consent checkpoint.
 
 When the consuming contract configures an automatic pull-request reviewer:
 
@@ -17,4 +17,4 @@ Absence of comments is not a completed review. When no qualifying configured rev
 
 When no automatic reviewer is configured, apply the contract's GitHub review process with the same exact-head, disposition, reply, resolution, and bounded-wait rules.
 
-This phase is complete only when required workflows pass for the current head, the configured review covers that head, every current thread is addressed and resolved, no actionable finding remains, and fresh local Standards and Spec review is clean. Keep findings and remediation within the issue-owning task.
+This phase is complete only when required workflows pass for the current head, the configured review covers that head, every current thread is addressed and resolved, no actionable finding remains, and fresh local Standards and Spec review is clean. Keep findings and remediation within the issue-owning task. On completion, continue directly to the rebase-and-merge procedure under the same grant; PR readiness is not a request for user approval.

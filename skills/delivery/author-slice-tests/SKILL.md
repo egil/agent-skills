@@ -48,7 +48,9 @@ Require:
 - existing worktree and natively linked remote branch;
 - the predictable local review snapshot directory and the specific test-owned finding IDs, when remediation was delegated;
 - relevant prior review findings or approved contract changes; and
-- checkpoint and push authority inherited from the issue-delivery task.
+- checkpoint and push authority inherited from the issue-delivery task, including the originating mandate reference and restrictions.
+
+Apply [standing delivery authorization](../delivery-runtime-protocol/references/standing-authorization.md) to delegated test commits and pushes: perform them at the required checkpoint without seeking the same consent again. Recover missing grant evidence from the Implementor; publication and merge remain the Implementor's responsibility.
 
 Verify expected branch and exact snapshot. Do not overwrite or silently include another agent's uncommitted work. If the handoff is dirty or points at the wrong revision, return it to the Implementor for reconciliation. The sole exception is `rebase-conflict` mode, whose handoff must identify the expected rebase, pre-rebase head, target default-branch OID, current `HEAD`, replayed commit, rebase progress and remaining todo, complete index-stage state, worktree diff, and untracked inventory.
 
