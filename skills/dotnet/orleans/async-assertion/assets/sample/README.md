@@ -12,14 +12,14 @@ This sample demonstrates the deterministic `WaitForAssertionAsync` pattern for O
 - **`WaitForAssertionAsync`** (package) — extension methods on `IGrainActivityWaiter` that retry an assertion on observed activity, optionally scoped to a single grain.
 - **`SiloFixture`** — sample `IClassFixture`/`ICollectionFixture` that owns the test cluster and collector and implements `IGrainActivityWaiter`, so tests call `fixture.WaitForAssertionAsync(...)` directly.
 
-## What the tests prove
+## What the tests demonstrate
 
-- Regular RPC calls trigger assertion retries.
-- One-way RPC calls produce deterministic triggers.
-- Stream deliveries trigger retries through the grain call filter on the consumer grain.
-- Parallel waits use unique grain IDs so grain-scoped waits do not interfere.
+- Assertions check state after regular RPC calls.
+- Assertions wait for state after one-way RPC calls.
+- Assertions wait for stream deliveries on the consumer grain.
+- Separate grain-scoped waits use unique grain IDs.
 - Value-returning assertions propagate the return value.
-- The overload without a grain scope retries on any observed activity.
+- The overload without a grain scope checks grain state.
 - A never-succeeding assertion fails with `WaitForAssertionTimeoutException` carrying the last assertion failure.
 - The `GetGrainCallsAsync` feed can be observed directly when individual events are needed.
 

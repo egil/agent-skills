@@ -32,10 +32,13 @@ jobs:
             head="${{ github.sha }}"
           fi
 
+          changed_files=$(git diff --name-only "$base" "$head")
           mapfile -t samples < <(
-            git diff --name-only "$base" "$head" \
-              | awk -F/ '/^skills\/[^/]+\/assets\/sample\//{print $1"/"$2"/assets/sample"}' \
-              | sort -u
+            if grep -Eq '^skills/dotnet/(Directory\.(Build|Packages)\.props|global\.json)$|^\.github/workflows/validate-samples\.yml$' <<< "$changed_files"; then
+              git ls-files 'skills/**/assets/sample/*.slnx' | sed 's|/[^/]*$||'
+            else
+              sed -n 's|^\(skills/.*\/assets/sample\)/.*|\1|p' <<< "$changed_files"
+            fi | sort -u
           )
 
           if [[ ${#samples[@]} -eq 0 ]]; then

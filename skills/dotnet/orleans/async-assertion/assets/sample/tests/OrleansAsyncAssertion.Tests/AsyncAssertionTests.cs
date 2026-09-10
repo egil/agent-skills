@@ -109,30 +109,18 @@ public sealed class AsyncAssertionTests(SiloFixture fixture) : IClassFixture<Sil
     }
 
     /// <summary>
-    /// Validates that the overload without a grain scope retries on any observed activity.
+    /// Demonstrates asserting grain state with the overload without a grain scope.
     /// </summary>
     [Fact]
-    public async Task Overload_without_grain_retries_on_any_activity()
+    public async Task Overload_without_grain_asserts_state()
     {
         var grain = fixture.GetGrain<ICounterGrain>(Guid.NewGuid().ToString());
-        var unrelated = fixture.GetGrain<ICounterGrain>(Guid.NewGuid().ToString());
 
         await grain.Add(9);
-
-        var ct = TestContext.Current.CancellationToken;
-        var pingTask = Task.Run(
-            async () =>
-            {
-                await Task.Delay(50, ct);
-                await unrelated.Add(1);
-            },
-            ct);
 
         await fixture.WaitForAssertionAsync(
             async () => Assert.Equal(9, await grain.GetValue()),
             ct: TestContext.Current.CancellationToken);
-
-        await pingTask;
     }
 
     /// <summary>

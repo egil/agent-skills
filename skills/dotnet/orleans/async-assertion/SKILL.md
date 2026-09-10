@@ -37,7 +37,7 @@ dotnet add package Egil.Orleans.Testing
 ### 2. Attach the collector to the test silo
 
 ```csharp
-var collector = new GrainActivityCollector();
+using var collector = new GrainActivityCollector();
 var builder = new InProcessTestClusterBuilder(initialSilosCount: 1);
 
 builder.ConfigureSilo((_, siloBuilder) =>
@@ -149,7 +149,12 @@ await waiter.WaitForAssertionAsync(grain, async () => Assert.Equal(5, await grai
 await waiter.WaitForAssertionAsync(async () => Assert.Equal(5, await grain.GetValue()));
 
 // Value-returning assertions.
-var value = await waiter.WaitForAssertionAsync(grain, async g => await g.GetValue());
+var value = await waiter.WaitForAssertionAsync(grain, async g =>
+{
+    var current = await g.GetValue();
+    Assert.Equal(5, current);
+    return current;
+});
 ```
 
 Lower-level observation, when a test genuinely needs individual events (couples the test to
