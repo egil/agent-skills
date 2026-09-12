@@ -1,4 +1,4 @@
 interface:
   display_name: "Delivery Runtime Protocol"
-  short_description: "Route agents and recover review receipts"
-  default_prompt: "Use $delivery-runtime-protocol to apply the model-routing or local-review-artifact branch for this delivery handoff."
+  short_description: "Coordinate delivery roles, recovery, and waiting"
+  default_prompt: "Use $delivery-runtime-protocol to select and apply the required authorization, model-routing, worker-continuity, review-artifact, or message-driven-waiting branch."

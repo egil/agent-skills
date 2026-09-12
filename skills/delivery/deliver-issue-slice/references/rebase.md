@@ -7,7 +7,7 @@ Immediately before merge, refresh remote state and require the pull request to b
 For a conflicted rebase:
 
 1. Record the pre-rebase head, target OID, current `HEAD`, replayed commit, progress, todo, full index stages, worktree diff, and untracked inventory.
-2. Resolve and stage production-owned conflicts. For test-owned conflicts, launch a Tester in `rebase-conflict` mode with that exact state and leave Git, index, and worktree untouched while it runs.
+2. Resolve and stage production-owned conflicts. For test-owned conflicts, resume the matching Tester in `rebase-conflict` mode under [worker continuity](../../delivery-runtime-protocol/references/worker-continuity.md) with that exact state and leave Git, index, and worktree untouched while it runs.
 3. Validate every identity and the full index against the Tester's receipt before continuing.
 4. Leave mixed-ownership or decision-bearing conflicts unresolved. Preserve evidence, abort only as the contract authorizes, verify the published branch is unchanged, and report `blocked` or `human-action`.
 5. After resolution, finish the rebase, apply owner self-review, preserve the recovery checkpoint with an exact lease, and rerun applicable gates plus complete-change review.

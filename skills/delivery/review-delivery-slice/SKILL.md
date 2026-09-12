@@ -18,7 +18,7 @@ The Implementor must supply the delivery contract or its discoverable location. 
 
 Load `$delivery-runtime-protocol`'s model-routing branch to validate the required model-routing handoff below. Apply that branch separately to each Standards and Spec spawn, including its escalation and check limits. Each axis assesses the whole assigned snapshot, so classify its risk from that scope.
 
-Apply the protocol's [message-driven waiting](../delivery-runtime-protocol/references/message-driven-waiting.md) branch while awaiting Standards and Spec results. Pass the result-delivery route to each axis, park when no independent review coordination can advance, and process material results or due recovery checks without polling unchanged artifacts. Neither a timeout nor a worker's completed turn is a clean review; preserve independent axes, fresh-review requirements, and exact-snapshot validation.
+Before waiting for Standards or Spec, including after resume or compaction, restore the deadline and session-local limits from [message-driven waiting](../delivery-runtime-protocol/references/message-driven-waiting.md) and calculate the timeout. Pass the result route and relevant deadlines to each axis. A timeout or completed turn is not a clean review; preserve independent axes, fresh-review requirements, and exact-snapshot validation.
 
 When a marker command is supplied, load `$development-session-observability` and emit only material review phases and quality results. Do not create an evidence ledger, put findings or source content in markers, or estimate unavailable usage.
 

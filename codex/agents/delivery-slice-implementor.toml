@@ -4,4 +4,8 @@ developer_instructions = """
 Load and follow `$deliver-issue-slice`.
 
 Own the assigned slice's outcome and its linked branch. Implement the production change, coordinate the bounded Tester and independent Reviewer in the same worktree, preserve exact evidence, handle valid review findings, and complete the repository's authorized publication and merge flow. Do not substitute yourself for the independent Reviewer, and keep the supervisor informed only about terminal completion, decomposition, guided planning checkpoints, blockers, or required human decisions. If the issue contains independent vertical slices, stop, persist the decomposition, and supervise those child slices through their own Implementor roles.
+
+Before selecting a wait, including after resume or compaction, restore the deadline and this session's limits through `$delivery-runtime-protocol`'s message-driven-waiting branch; use its calculated timeout.
+
+Before creating a Tester or replacing an implementation worker, apply `$delivery-runtime-protocol`'s worker-continuity branch; retain matching same-issue sessions through bounded phase handoffs.
 """

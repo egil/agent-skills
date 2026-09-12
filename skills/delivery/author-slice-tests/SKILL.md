@@ -5,12 +5,14 @@ description: Author high-value tests for one delivery slice or resolve its test-
 
 # Author slice tests
 
-Own test code for one small delivery slice as a short-lived task against an exact snapshot in its existing worktree and linked branch. Select one mode and read only its procedure:
+Own test code for one small delivery slice through bounded assignments in the same resumable Tester session. Each assignment covers an exact snapshot in the issue's existing worktree and linked branch. Select only the currently assigned mode and read its procedure:
 
 - [`red-contract`](references/red-contract.md): establish meaningful red before behavior-changing production work.
 - [`green-baseline`](references/green-baseline.md): characterize behavior before preservation work.
 - [`green-finalization`](references/green-finalization.md): prove restored assertion sensitivity and required gates after production work.
 - [`rebase-conflict`](references/rebase-conflict.md): resolve only test-owned conflicts while the Implementor controls the rebase.
+
+Before an initial or follow-up assignment, apply [same-issue worker continuity](../delivery-runtime-protocol/references/worker-continuity.md). Revalidate the phase goal, current mode, contract, and exact snapshot; prior session knowledge does not replace those checks. Retain production ownership with the Implementor and independent review with the Reviewer.
 
 ## Load the consuming-repository contract
 
@@ -24,6 +26,8 @@ The invoking Implementor must supply the delivery contract or its discoverable l
 Load `$delivery-runtime-protocol`'s model-routing branch to validate the Implementor's selected pair, rationale, worker allocation, and verification boundary. Return a stalled assignment through its reclassification handoff.
 
 When a marker command is supplied, load `$development-session-observability` and emit material phases, work cycles, and quality results without delaying testing. Codex owns native usage collection; never estimate credits.
+
+Before waiting on any delegated work or external gate, including after resume or compaction, apply [message-driven waiting](../delivery-runtime-protocol/references/message-driven-waiting.md). Restore the relevant deadline and this session's supported limits before selecting a timeout.
 
 ## Apply the testing contract
 
@@ -54,7 +58,7 @@ Apply [standing delivery authorization](../delivery-runtime-protocol/references/
 
 Verify expected branch and exact snapshot. Do not overwrite or silently include another agent's uncommitted work. If the handoff is dirty or points at the wrong revision, return it to the Implementor for reconciliation. The sole exception is `rebase-conflict` mode, whose handoff must identify the expected rebase, pre-rebase head, target default-branch OID, current `HEAD`, replayed commit, rebase progress and remaining todo, complete index-stage state, worktree diff, and untracked inventory.
 
-## Persist the receipt and stop
+## Complete the phase and return
 
 For `red-contract` and `green-baseline`, map the handoff to review mode `test-contract`; for `green-finalization`, map it to `complete-change`. Once the exact resulting `HEAD` and comparison base are known, load `$delivery-runtime-protocol` and apply its local-review-artifact branch. Verify the Implementor's ignore setup without changing it; if the path is not ignored, return that ordinary setup correction to the Implementor before writing. Write the matching `verification.md` before returning, recording exact commands, discovery, results, fidelity, unexercised dependencies, and residual risk. Rebase-conflict mode returns its state to the controlling Implementor instead because its `HEAD` is not yet a review candidate.
 
@@ -69,3 +73,5 @@ Return to the Implementor:
 - any required production seam, blocking prerequisite, human decision, or human implementation boundary.
 
 Keep review findings and test-remediation discussion inside the issue-owning task. Notify the Supervisor only through the Implementor's canonical `completed`, `decomposed`, `blocked`, or `human-action` signal.
+
+After delivering the phase receipt, end this active assignment and retain the session identity for an explicit same-issue follow-up. Start the next mode only from its new handoff; remain inactive between phases rather than waiting for work. Preserve any legitimate pending child work through the waiting protocol.

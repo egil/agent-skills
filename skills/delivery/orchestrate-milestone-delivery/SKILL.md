@@ -79,9 +79,11 @@ Apply `$delivery-runtime-protocol`'s run-wide worker allocation, reserving capac
 
 Load `$delivery-runtime-protocol` and apply its model-routing branch to Supervisor selection and every bounded spawn. Pass the effective supported model and reasoning pair, evidence-backed rationale, worker allocation, and verification boundary. An Implementor acting as a parent Supervisor shares that allocation and protocol with every child.
 
-Before delegating or waiting, apply the protocol's [message-driven waiting](../delivery-runtime-protocol/references/message-driven-waiting.md) branch. Pass its result-delivery route and relevant deadlines to every bounded role, including nested coordinators. Record trial variant `delivery-autonomous-v2` (quiet waiting plus standing authorization), its activation UTC, and the selected wait mechanism once in the existing run checkpoint; record capability fallback or failure when it occurs, not on each timeout.
+Before delegating, selecting a timeout, or returning from recovery or a side task, apply [message-driven waiting](../delivery-runtime-protocol/references/message-driven-waiting.md). Restore its absolute deadline and session-local limits before the next wait. Pass the waiting-policy identifier, result route, and relevant deadlines to nested coordinators; each validates its own runtime. Record active policy identifiers and activation UTC once in the existing run checkpoint, then only material state or capability changes.
 
 When a worker returns a stalled assignment, use the protocol's reclassification handoff to select the next model or planning task directly. Keep retries and model escalation within the authorized delivery mandate; surface only actual human decisions or capability gaps that prevent progress.
+
+Before assigning a new slice owner or routing a correction to an existing one, apply [same-issue worker continuity](../delivery-runtime-protocol/references/worker-continuity.md). Retain the matching Implementor through the issue's phases and require it to retain the matching Tester. Reviewer freshness and new-issue isolation remain unchanged.
 
 ## Recover ownership before launching
 
@@ -90,9 +92,9 @@ Use Codex project and task tools before creating work:
 1. Resolve the saved Git project and confirm it is a repository.
 2. List recent and pinned Codex tasks and inspect plausible owners using a deterministic issue-bearing title.
 3. Query the issue's native linked branches and pull requests.
-4. Resume an existing owner whenever possible. If unavailable, recover from the linked remote branch and exact pushed SHA using `$deliver-issue-slice`.
+4. Resume the matching existing Implementor under the worker-continuity branch. If replacement is required, record why and transfer ownership from the linked remote branch and exact pushed SHA using `$deliver-issue-slice`; preserve the old/new task identities.
 
-Temporary inter-agent review artifacts make the existing issue worktree part of recovery. Before replacing interrupted Tester or Reviewer work, have the recovered Implementor load `$delivery-runtime-protocol`, apply its local-review-artifact branch, and inspect the exact-snapshot receipts. Preserve the worktree at least until the pull request is ready to merge; the remote branch remains the recovery source for committed product changes.
+Temporary inter-agent review artifacts make the existing issue worktree part of recovery. Have the recovered Implementor resolve saved Tester identity under worker continuity and inspect interrupted Tester/Reviewer exact-snapshot receipts through `$delivery-runtime-protocol`'s local-review-artifact branch before assigning missing work. Preserve the worktree at least until the pull request is ready to merge; the remote branch remains the recovery source for committed product changes.
 
 Immediately before task creation, re-query assignee, project state, linked development items, native branch, pull request, and Codex task state. If ownership is ambiguous, fail closed instead of creating a duplicate. Assignment to a shared GitHub identity alone is not a unique claim; the native linked branch and durable Codex task identity are.
 
