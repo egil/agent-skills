@@ -56,12 +56,22 @@ PLUGIN_NAME=$(python3 -c "import json;print(json.load(open('$PLUGIN/.claude-plug
 # The marketplace must point at this plugin by path.
 python3 - "$ROOT/.claude-plugin/marketplace.json" "$PLUGIN_NAME" <<'PY' || failures=$((failures + 1))
 import json, sys
+import os
 mk = json.load(open(sys.argv[1]))
-names = [p.get("name") for p in mk.get("plugins", [])]
-if sys.argv[2] not in names:
-    print(f"  FAIL marketplace.json does not list plugin '{sys.argv[2]}' (has {names})", file=sys.stderr)
+entry = next((p for p in mk.get("plugins", []) if p.get("name") == sys.argv[2]), None)
+if entry is None:
+    print(f"  FAIL marketplace.json does not list plugin '{sys.argv[2]}'", file=sys.stderr)
     sys.exit(1)
-print(f"  ok   marketplace lists '{sys.argv[2]}'")
+src = entry.get("source")
+if not isinstance(src, str):
+    print(f"  FAIL marketplace entry '{sys.argv[2]}' has no string source", file=sys.stderr)
+    sys.exit(1)
+root = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[1])))
+resolved = os.path.normpath(os.path.join(root, src))
+if not os.path.isfile(os.path.join(resolved, ".claude-plugin", "plugin.json")):
+    print(f"  FAIL marketplace source '{src}' does not resolve to a plugin", file=sys.stderr)
+    sys.exit(1)
+print(f"  ok   marketplace source '{src}' resolves")
 PY
 
 echo "Agents"
@@ -126,9 +136,29 @@ done < <(for a in "$PLUGIN"/agents/*.md; do
              grep -oE '\.\./references/[a-z-]+\.md' "$a" | sort -u | while read -r r; do echo "$a:$r"; done
          done)
 
+# Every agent a skill names must exist; a typo would otherwise surface only at run time.
+while IFS= read -r ref; do
+    src="${ref%%:*}"; name="${ref#*:}"
+    [[ -n "${AGENT_SEEN[$name]:-}" ]] && ok "$(basename "$(dirname "$src")") -> agent $name" \
+        || fail "$src names unknown agent '$name'"
+done < <(for sk in "$PLUGIN"/skills/*/SKILL.md; do
+             # Strip file names first so reference paths (review-artifacts.md)
+             # are not mistaken for agent names.
+             sed -E 's#[A-Za-z0-9_-]+\.md##g' "$sk" \
+                 | grep -ohE '\b(delivery|review)-[a-z]+\b' | sort -u | while read -r n; do
+                 [[ "$n" == review-slice ]] && continue
+                 echo "$sk:$n"
+             done
+         done)
+
 for agent in "${!AGENT_SEEN[@]}"; do
     grep -rq "$agent" "$PLUGIN/skills" || printf '  note %s is defined but never named by a skill\n' "$agent"
 done
+
+echo "Runtime dependencies"
+command -v jq >/dev/null 2>&1 \
+    && ok "jq present (required by the role guard on every hook invocation)" \
+    || fail "jq is not installed; the role guard blocks every call without it"
 
 echo "Role guard"
 bash -n "$PLUGIN/scripts/role-guard.sh" && ok "role-guard.sh parses" || fail "role-guard.sh has a syntax error"

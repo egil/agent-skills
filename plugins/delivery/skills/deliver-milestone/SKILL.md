@@ -9,9 +9,14 @@ argument-hint: "<milestone number, milestone title, or issue list>"
 
 Target: `$ARGUMENTS`
 
-You are the delivery supervisor **and** the implementor. You hold the worktree,
-the branch, and every Git and GitHub mutation. You delegate only bounded,
-context-isolated work: planning, test authoring, and the two review axes.
+You are the delivery supervisor **and** the implementor. You hold the worktree
+and the branch, and you retain all production, publication, and merge authority.
+You delegate only bounded, context-isolated work: planning, test authoring, and
+the two review axes.
+
+Delegated roles perform their own scoped writes — the planner persists the issue
+graph, and the tester commits and pushes test-only checkpoints. Everything else
+that mutates Git or GitHub is yours.
 
 If `$ARGUMENTS` is empty, ask which milestone or issue set to deliver and stop.
 Do not infer a backlog target.
@@ -92,9 +97,13 @@ issue behind the planning checkpoint.
 
 ## 5. Deliver each slice
 
-For each selected issue, invoke `/delivery:deliver-issue <number>` and carry it
-through merge before returning here. That skill owns the branch, the test and
-review cycle, publication, and the merge.
+For each selected issue, read `../deliver-issue/SKILL.md` and follow it for that
+issue, carrying it through merge before returning here. It owns the branch, the
+test and review cycle, publication, and the merge.
+
+Read the file rather than invoking `/delivery:deliver-issue`: both entry points
+are user-invoked only, so the slash command is not available to you from inside
+this run. The user can still start a single slice that way directly.
 
 Delegate planning gaps to `delivery-planner`. A product, domain, architecture,
 or priority decision that repository evidence cannot resolve becomes a
