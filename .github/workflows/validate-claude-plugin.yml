@@ -1,0 +1,21 @@
+name: Validate Claude plugin
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate plugin structure
+        run: ./scripts/validate-claude-plugin.sh
+
+      - name: Check synced references are current
+        run: ./scripts/sync-plugin-references.sh --check
+
+      - name: Test role guard
+        run: ./plugins/delivery/scripts/role-guard.test.sh

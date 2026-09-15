@@ -1,3 +1,5 @@
+<!-- Synced from skills/delivery/deliver-issue-slice/references/executable-contract.md by scripts/sync-plugin-references.sh. Edit the source, not this copy. -->
+
 # Establish the executable contract
 
 Choose the branch matching the approved change. Apply your harness's same-issue worker continuity rule: create a Tester only when no matching capable session exists, then resume it through bounded modes. Each mode still requires its own exact-snapshot handoff and completion evidence.

@@ -1,0 +1,14 @@
+{
+  "name": "delivery",
+  "displayName": "Issue Slice Delivery",
+  "version": "0.1.0",
+  "description": "Drive a GitHub milestone or issue set through small, independently mergeable slices with separated implementation, testing, and independent two-axis review.",
+  "author": { "name": "Egil Hansen" },
+  "homepage": "https://github.com/egil/agent-skills",
+  "repository": "https://github.com/egil/agent-skills",
+  "license": "MIT",
+  "keywords": ["github", "delivery", "orchestration", "code-review", "testing"],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/hooks.json"
+}

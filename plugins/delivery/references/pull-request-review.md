@@ -1,3 +1,5 @@
+<!-- Synced from skills/delivery/deliver-issue-slice/references/pull-request-review.md by scripts/sync-plugin-references.sh. Edit the source, not this copy. -->
+
 # Pull-request checks and review
 
 Enter this phase only with a local-review-clean candidate whose local and remote heads are equal. Use the inherited standing grant for the PR creation, updates, reviewed pushes, and ready transition below; perform each at its required stage without another user-consent checkpoint.

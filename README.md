@@ -97,6 +97,58 @@ npx skills@latest add mattpocock/skills --skill setup-matt-pocock-skills --skill
 
 Add `--global` to that command if the companion skills should be user-level defaults. Run `/setup-matt-pocock-skills` once in each consuming repository before first using `to-spec` or `to-tickets`.
 
+## Claude delivery plugin
+
+The same delivery workflow is packaged separately for Claude Code as a plugin under [`plugins/delivery`](plugins/delivery). It is not a port of the Codex bundle: Claude Code resolves reasoning effort from a subagent definition rather than from a spawn request, notifies a session when a delegated agent finishes rather than exposing an interruptible wait, and can enforce a role boundary through hooks. Those differences change the shape of the workflow, so the two harnesses share domain content and keep their own runtime layers.
+
+### Install
+
+```shell
+# From a consuming repository
+/plugin marketplace add egil/agent-skills
+/plugin install delivery@egil-agent-skills
+```
+
+To try it without installing, run Claude Code with `claude --plugin-dir /path/to/agent-skills/plugins/delivery`.
+
+### What it contains
+
+Two levels instead of the Codex bundle's five: the main session acts as both supervisor and implementor, holding the worktree, the branch, and every Git and GitHub mutation, while bounded work is delegated to context-isolated subagents.
+
+| Component | Kind | Role |
+| --- | --- | --- |
+| `/delivery:deliver-milestone` | skill | Entry point. Supervision mode, delivery snapshot, frontier, and completion. |
+| `/delivery:deliver-issue` | skill | Entry point. One slice from its linked branch through merge. |
+| `/delivery:review-slice` | skill | Pins a snapshot, runs both review axes, aggregates the result receipt. |
+| `delivery-planner` | subagent | Decomposes an oversized issue into durable child issues. |
+| `delivery-tester` | subagent | Owns test code for one slice in one bounded mode. |
+| `review-standards` | subagent | Independent Standards axis; writes only `standards.md`. |
+| `review-spec` | subagent | Independent Spec axis; writes only `spec.md`. |
+
+Both entry points set `disable-model-invocation: true`, so Claude cannot start a through-merge run on its own; the workflow is user-invoked only. The plugin validator enforces that.
+
+### Role boundaries are enforced, not requested
+
+`hooks/hooks.json` registers a `PreToolUse` guard that reads the `agent_type` of the calling subagent and denies out-of-role operations: review axes cannot mutate Git state or the issue tracker, the tester cannot publish or merge, the planner cannot touch code or branches, and no delegated role can force-push, release, or dispatch a workflow. The main session is deliberately unaffected, because it legitimately owns every mutation.
+
+The guard is a guardrail against role drift, not a sandbox — it does not defend against deliberate evasion. Its behavior is pinned by [`role-guard.test.sh`](plugins/delivery/scripts/role-guard.test.sh), which CI runs.
+
+### Shared domain content
+
+The runtime-neutral references — slice sizing, the delivery contract, review artifacts and disposition lifecycle, the executable-contract, rebase, and review-mode procedures — have one canonical copy outside the plugin and are mirrored into it, because a plugin must be self-contained once installed:
+
+```shell
+./scripts/sync-plugin-references.sh          # refresh the copies
+./scripts/sync-plugin-references.sh --check  # assert they are current (CI)
+./scripts/validate-claude-plugin.sh          # structure, frontmatter, cross-references
+```
+
+Edit the canonical file, never the copy in `plugins/delivery/references/`; each copy carries a header naming its source.
+
+### Model routing
+
+Model and effort live in each subagent definition, since Claude Code cannot set effort per spawn. The current assignments are a documented starting point with named experiments rather than a measured optimum — see [model-routing.md](plugins/delivery/model-routing.md).
+
 ## Codex delivery bundle
 
 The delivery workflow is a generic, Codex-specific bundle for moving small, independently mergeable issue slices through planning, implementation, testing, review, and publication. It contains five role skills plus four shared support skills: delivery runtime protocol, session observability, and two testing packages. The reusable skill and profile contents contain no consuming repository, organization, project, or user identity. A consuming repository supplies those details through its normal project instructions and issue-tracker adapter.
