@@ -22,6 +22,10 @@ MANIFEST=(
     "skills/delivery/deliver-issue-slice/references/executable-contract.md|executable-contract.md"
     "skills/delivery/deliver-issue-slice/references/pull-request-review.md|pull-request-review.md"
     "skills/delivery/deliver-issue-slice/references/rebase.md|rebase.md"
+    "skills/delivery/author-slice-tests/references/red-contract.md|red-contract.md"
+    "skills/delivery/author-slice-tests/references/green-baseline.md|green-baseline.md"
+    "skills/delivery/author-slice-tests/references/green-finalization.md|green-finalization.md"
+    "skills/delivery/author-slice-tests/references/rebase-conflict.md|rebase-conflict.md"
     "skills/delivery/review-delivery-slice/references/complete-change.md|complete-change.md"
     "skills/delivery/review-delivery-slice/references/test-contract.md|test-contract.md"
 )
