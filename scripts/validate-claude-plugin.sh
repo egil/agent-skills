@@ -103,6 +103,16 @@ done < <(grep -roh --include='SKILL.md' -E '\.\./\.\./references/[a-z-]+\.md' "$
              for s in "$PLUGIN"/skills/*/SKILL.md; do grep -q "$p" "$s" && echo "$s:$p"; done
            done)
 
+# Agent files reference the synced directory as ../references/<file>.md
+while IFS= read -r line; do
+    src="${line%%:*}"; rel="${line#*:}"
+    target="$(realpath -m "$(dirname "$src")/$rel")"
+    [[ -f "$target" ]] && ok "$(basename "$src" .md) -> $(basename "$rel")" \
+        || fail "$src references missing $rel"
+done < <(for a in "$PLUGIN"/agents/*.md; do
+             grep -oE '\.\./references/[a-z-]+\.md' "$a" | sort -u | while read -r r; do echo "$a:$r"; done
+         done)
+
 for agent in "${!AGENT_SEEN[@]}"; do
     grep -rq "$agent" "$PLUGIN/skills" || printf '  note %s is defined but never named by a skill\n' "$agent"
 done

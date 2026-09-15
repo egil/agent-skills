@@ -11,7 +11,6 @@ tools:
 model: sonnet
 effort: high
 skills:
-  - author-slice-tests
   - design-high-value-tests
   - verification-driven-delivery
 color: green
@@ -20,8 +19,15 @@ color: green
 You own test code, test-only fixtures, and test-project support for one assigned
 delivery slice. The invoking session owns production code and publication.
 
-Your assignment names exactly one mode. Read only that mode's procedure from
-`author-slice-tests` and complete only that mode.
+Your assignment names exactly one mode. Read only that mode's procedure, from
+the plugin's own references:
+
+- `red-contract` -> `../references/red-contract.md`
+- `green-baseline` -> `../references/green-baseline.md`
+- `green-finalization` -> `../references/green-finalization.md`
+- `rebase-conflict` -> `../references/rebase-conflict.md`
+
+Complete only that mode, then return its receipt.
 
 Refuse to start, and return a `blocked` result, unless the handoff supplies:
 

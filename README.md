@@ -145,6 +145,19 @@ The runtime-neutral references — slice sizing, the delivery contract, review a
 
 Edit the canonical file, never the copy in `plugins/delivery/references/`; each copy carries a header naming its source.
 
+### External skill dependencies
+
+The plugin is self-contained except for two runtime-neutral testing skills that the subagents preload. Install them from this repository at user or project scope before first use:
+
+```shell
+npx skills@latest add egil/agent-skills \
+  --skill design-high-value-tests \
+  --skill verification-driven-delivery \
+  --agent claude --yes
+```
+
+The plugin deliberately does **not** depend on the Codex role skills (`author-slice-tests`, `plan-delivery-slices`, `review-delivery-slice`, ...). Their runtime-neutral procedures are mirrored into `plugins/delivery/references/` instead, so installing the Codex bundle alongside the plugin is neither required nor harmful.
+
 ### Model routing
 
 Model and effort live in each subagent definition, since Claude Code cannot set effort per spawn. The current assignments are a documented starting point with named experiments rather than a measured optimum — see [model-routing.md](plugins/delivery/model-routing.md).
