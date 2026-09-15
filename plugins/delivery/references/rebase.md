@@ -1,3 +1,5 @@
+<!-- Synced from skills/delivery/deliver-issue-slice/references/rebase.md by scripts/sync-plugin-references.sh. Edit the source, not this copy. -->
+
 # Rebase before merge
 
 Dependent work begins only after blockers merge into the default branch. Pull-request stacks require separate authorization.
