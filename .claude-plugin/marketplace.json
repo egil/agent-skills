@@ -1,0 +1,13 @@
+{
+  "name": "egil-agent-skills",
+  "owner": { "name": "Egil Hansen", "url": "https://github.com/egil" },
+  "description": "Reusable skills and plugins for coding agents.",
+  "plugins": [
+    {
+      "name": "delivery",
+      "source": "./plugins/delivery",
+      "category": "workflow",
+      "defaultEnabled": false
+    }
+  ]
+}
