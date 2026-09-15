@@ -9,8 +9,9 @@ argument-hint: "<issue number>"
 
 Issue: `$ARGUMENTS`
 
-You own this slice's outcome: the linked branch, the production code, every Git
-and GitHub mutation, and the merge. You delegate test authoring to
+You own this slice's outcome: the linked branch, the production code, the
+publication, and the merge. The tester commits and pushes test-only checkpoints
+on this same branch; every other Git and GitHub mutation is yours. You delegate test authoring to
 `delivery-tester` and review to `/delivery:review-slice`. You never perform the
 independent review yourself, and you never write the tests you then review.
 
@@ -68,10 +69,40 @@ snapshot, and the contract. It owns test code; you own production code. Do not
 edit tests yourself, and do not implement production behavior while it holds the
 worktree.
 
+### Reuse the same tester across modes
+
+The executable-contract procedure tells you to resume *the same* tester through
+its bounded modes rather than starting a fresh one each time. In Claude Code
+that means:
+
+- spawn `delivery-tester` once per issue, and record its agent name or id in the
+  durable phase checkpoint alongside the branch and snapshot;
+- for every later mode — green finalization, delegated test findings, a
+  test-owned rebase conflict — continue *that* agent with a message carrying the
+  new mode, the exact snapshot, and any delegated finding IDs. Do not spawn a
+  second tester for the same issue;
+- each continuation is still a bounded assignment: it ends at that mode's
+  completion criterion with its own receipt. Prior context does not substitute
+  for revalidating the snapshot; and
+- replace the tester only when it cannot safely continue — it is gone, its
+  session did not survive, or its scope no longer matches. Record the reason and
+  the old and new identities. Ordinary mode completion is not a reason.
+
+Subagent identity does not survive the end of your own session. After a restart,
+treat the recorded identity as unresumable, spawn a fresh tester, and rebuild
+its context from the branch, the checkpoint, and the existing receipts — which
+is why those receipts, not the agent, are the durable record.
+
 ## 4. Commission independent review
 
-After production verification and green finalization, curate coherent commits,
-push, and verify the remote branch equals your candidate `HEAD`. Require a clean
+After production verification and — unless the approved infrastructure no-test
+exception applies — tester green finalization, curate coherent commits, push,
+and verify the remote branch equals your candidate `HEAD`.
+
+Under that exception you skip test authoring, test-contract review, and green
+finalization only. Production verification, complete-change review, and every
+applicable non-test gate still apply, and the recorded decision, alternative
+verification, and residual risk go into `verification.md` before dispatch. Require a clean
 index and tracked worktree; ignored review artifacts are the only allowed local
 difference.
 
@@ -95,7 +126,9 @@ finalization when assertions changed, curate history, and commission a fresh
 review of the new `HEAD`. A clean review still writes its result receipt.
 
 The local stage is complete only when every finding has a terminal disposition,
-both axes are clean for the exact curated `HEAD`, that `HEAD` is the verified
+applicable test-contract review and green finalization are complete *or* the
+infrastructure no-test exception is recorded, both axes are clean for the exact
+curated `HEAD`, that `HEAD` is the verified
 remote branch head, and all required gates pass. Do not open even a draft pull
 request before then.
 

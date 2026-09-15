@@ -79,10 +79,14 @@ inventory against the pinned state. If anything differs, invalidate the result
 and require a fresh review of the new snapshot — an axis completing is not a
 clean verdict.
 
-Validate both axis files against the request and snapshot, then write
-`result.md` with `complete` status, exact identities, per-axis counts, and the
-clean or finding-bearing verdict. Record only what remains incomplete if an axis
-did not finish.
+Validate both axis files against the request and snapshot. Write `result.md`
+with `complete` status **only** when both axes returned, both artifacts validate
+against the exact snapshot, and every finding is recorded. Otherwise write it
+with `incomplete` status naming exactly which axis is missing or invalid and why.
+
+An `incomplete` result is recovery evidence, never a verdict. A later run must
+be able to tell the two apart from the file alone — a blocked or non-returning
+axis must never leave behind a receipt that reads as clean.
 
 Return the behavior-start SHA, comparison base, `HEAD`, local-state summary,
 mode, artifact directory and file states, and the two reports under separate

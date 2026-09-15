@@ -129,9 +129,19 @@ Both entry points set `disable-model-invocation: true`, so Claude cannot start a
 
 ### Role boundaries are enforced, not requested
 
-`hooks/hooks.json` registers a `PreToolUse` guard that reads the `agent_type` of the calling subagent and denies out-of-role operations: review axes cannot mutate Git state or the issue tracker, the tester cannot publish or merge, the planner cannot touch code or branches, and no delegated role can force-push, release, or dispatch a workflow. The main session is deliberately unaffected, because it legitimately owns every mutation.
+`hooks/hooks.json` registers a `PreToolUse` guard that reads the `agent_type` of the calling subagent and constrains it:
 
-The guard is a guardrail against role drift, not a sandbox — it does not defend against deliberate evasion. Its behavior is pinned by [`role-guard.test.sh`](plugins/delivery/scripts/role-guard.test.sh), which CI runs.
+| Role | Git | Tracker | Files |
+| --- | --- | --- | --- |
+| review axes | read-only allowlist | read-only; `gh api` writes denied | only its own axis artifact |
+| `delivery-tester` | test checkpoints; no integration, checkout, reset, or apply | none | test-owned paths only |
+| `delivery-planner` | read-only allowlist | issue-graph writes only; no close, delete, or transfer | none |
+
+No delegated role may force-push in any form, release, dispatch a workflow, or touch repository or credential settings. The main session is deliberately unconstrained by these role rules, because it legitimately owns every mutation.
+
+Read-only roles use an **allowlist**, not a denylist — a denylist cannot anticipate every mutating verb, and an early version of this guard was bypassed by `git -C <path> commit`, `gh api -f state=closed`, and `--force-with-lease`.
+
+The guard is a guardrail against role drift, **not a sandbox**: it does not defend against `eval`, aliases, shell functions, or scripts. Tester write-path detection uses conventional test-layout globs; set `DELIVERY_TEST_PATHS` (colon-separated globs) where a repository differs. Behavior is pinned by [`role-guard.test.sh`](plugins/delivery/scripts/role-guard.test.sh) — 96 cases, run in CI.
 
 ### Shared domain content
 
@@ -144,6 +154,14 @@ The runtime-neutral references — slice sizing, the delivery contract, review a
 ```
 
 Edit the canonical file, never the copy in `plugins/delivery/references/`; each copy carries a header naming its source.
+
+### Requirements
+
+`jq` must be on `PATH`. The role guard parses hook input with it on every tool call, and without it the guard cannot classify a call and therefore blocks it — including calls from the main session. `validate-claude-plugin.sh` checks for it.
+
+```shell
+sudo apt install jq     # or: brew install jq
+```
 
 ### External skill dependencies
 
