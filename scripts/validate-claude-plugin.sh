@@ -37,6 +37,19 @@ for j in "$PLUGIN/.claude-plugin/plugin.json" "$PLUGIN/hooks/hooks.json" "$ROOT/
     fi
 done
 
+# Component path overrides have a schema the docs do not pin down (an "agents"
+# directory string is rejected at install as invalid input). The layout already
+# matches default discovery, so the overrides buy nothing and can break install.
+python3 - "$PLUGIN/.claude-plugin/plugin.json" <<'MANIFEST' || failures=$((failures + 1))
+import json, sys
+d = json.load(open(sys.argv[1]))
+risky = [k for k in ("skills","agents","commands","hooks","mcpServers","lspServers") if k in d]
+if risky:
+    print(f"  FAIL plugin.json sets component path override(s) {risky}; rely on default discovery", file=sys.stderr)
+    sys.exit(1)
+print("  ok   plugin.json uses default component discovery")
+MANIFEST
+
 PLUGIN_NAME=$(python3 -c "import json;print(json.load(open('$PLUGIN/.claude-plugin/plugin.json')).get('name',''))" 2>/dev/null)
 [[ -n "$PLUGIN_NAME" ]] && ok "plugin name '$PLUGIN_NAME'" || fail "plugin.json has no name"
 
