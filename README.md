@@ -180,6 +180,24 @@ The plugin deliberately does **not** depend on the Codex role skills (`author-sl
 
 Model and effort live in each subagent definition, since Claude Code cannot set effort per spawn. The current assignments are a documented starting point with named experiments rather than a measured optimum — see [model-routing.md](plugins/delivery/model-routing.md).
 
+## Claude output style plugin
+
+[`plugins/egil-style`](plugins/egil-style) ships the `egil` output style: terse, code-first replies with no AI tells. The style file is [`output-styles/egil.md`](plugins/egil-style/output-styles/egil.md). It sets `keep-coding-instructions: true` and `force-for-plugin: true`, so enabling the plugin applies the style without a settings change.
+
+```shell
+/plugin marketplace add egil/agent-skills
+/plugin install egil-style@egil-agent-skills
+```
+
+To use the file without the plugin system, copy it to the user-level directory:
+
+```shell
+mkdir -p ~/.claude/output-styles
+cp plugins/egil-style/output-styles/egil.md ~/.claude/output-styles/
+```
+
+Then pick `egil` under `/config`, or set `"outputStyle": "egil"` in `~/.claude/settings.json`.
+
 ## Codex delivery bundle
 
 The delivery workflow is a generic, Codex-specific bundle for moving small, independently mergeable issue slices through planning, implementation, testing, review, and publication. It contains five role skills plus four shared support skills: delivery runtime protocol, session observability, and two testing packages. The reusable skill and profile contents contain no consuming repository, organization, project, or user identity. A consuming repository supplies those details through its normal project instructions and issue-tracker adapter.

@@ -1,0 +1,17 @@
+{
+  "name": "egil-style",
+  "displayName": "egil output style",
+  "version": "0.1.0",
+  "description": "Terse, code-first output style for a senior engineer. Code and diagrams over prose. No AI tells.",
+  "author": {
+    "name": "Egil Hansen"
+  },
+  "homepage": "https://github.com/egil/agent-skills",
+  "repository": "https://github.com/egil/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "output-style",
+    "terse",
+    "code-first"
+  ]
+}
