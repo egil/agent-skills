@@ -106,6 +106,7 @@ for d in "$PLUGIN"/skills/*/; do
 done
 
 # Entry points must not be model-invocable: this workflow pushes and merges.
+# review-slice is deliberately left invocable; it is read-only and writes only ignored receipts.
 for entry in deliver-milestone deliver-issue; do
     f="$PLUGIN/skills/$entry/SKILL.md"
     [[ -f "$f" ]] || continue
