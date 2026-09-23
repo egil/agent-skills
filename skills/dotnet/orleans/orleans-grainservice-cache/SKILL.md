@@ -69,7 +69,7 @@ Do not use sequential `ObserverManager.Notify` for durable system-target subscri
 
 For each failed ID, parse it with `SystemTargetGrainId.TryParse(id, out var systemTarget)` and resolve its exact generation with `systemTarget.GetSiloAddress()`. Remove it only when that exact address is explicitly `Dead`, `Stopping`, or `ShuttingDown`, or when membership contains a newer generation for the same endpoint. Retain `Active`, `Joining`, `Created`, and missing/unknown membership entries: a timeout is not proof that a silo cannot recover. Log observer ID, delivery error, membership status, cleanup decision, and total fanout duration. Apply all confirmed removals to persisted state and call `WriteStateAsync` once after fanout.
 
-The complete sample implementation follows this policy.
+The abbreviated grain implementation below illustrates the notification flow. The complete runnable sample, including the `ObserverFanout` and `ObserverMembershipCleanup` helpers and membership-aware logging, is in [assets/sample](assets/sample).
 ```csharp
 /// <summary>
 /// Persisted state for the data grain.
@@ -189,6 +189,9 @@ public sealed class DataGrain([PersistentState("data")] IPersistentState<DataGra
         }
     }
 
+    /// <summary>
+    /// Returns the observer ID when membership confirms its silo generation cannot recover.
+    /// </summary>
     private GrainId? ConfirmedDeadGeneration(GrainId observerId, ClusterMembershipSnapshot snapshot)
     {
         if (!SystemTargetGrainId.TryParse(observerId, out var systemTarget))
@@ -525,3 +528,4 @@ public sealed class CacheGrainServiceSubscriptionTests
 - [Sample implementation](assets/sample)
 - [Orleans Observers](https://learn.microsoft.com/en-us/dotnet/orleans/grains/observers?pivots=orleans-10-0)
 - [Orleans GrainServices](https://learn.microsoft.com/en-us/dotnet/orleans/grains/grainservices?pivots=orleans-10-0)
+
