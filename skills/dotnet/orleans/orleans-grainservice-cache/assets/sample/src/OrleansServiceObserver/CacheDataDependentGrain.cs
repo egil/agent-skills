@@ -4,7 +4,7 @@ namespace OrleansServiceObserver.Grains;
 
 public interface ICacheDataDependentGrain : IGrainWithStringKey
 {
-    Task<string?> GetValue();
+    public Task<string?> GetValue();
 }
 
 /// <summary>

@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Orleans.Utilities;
 
 namespace OrleansServiceObserver.Grains;
 
@@ -15,22 +15,22 @@ public interface IDataGrain : IGrainWithStringKey
     /// <summary>
     /// Registers a per-silo grain service observer for update notifications.
     /// </summary>
-    Task Subscribe(IDataGrainObserver subscriber);
+    public Task Subscribe(IDataGrainObserver subscriber);
 
     /// <summary>
     /// Removes a previously registered observer.
     /// </summary>
-    Task Unsubscribe(IDataGrainObserver subscriber);
+    public Task Unsubscribe(IDataGrainObserver subscriber);
 
     /// <summary>
     /// Mutates the grain's state and notifies observers.
     /// </summary>
-    Task UpdateValue(string value);
+    public Task UpdateValue(string value);
 
     /// <summary>
     /// Reads the current value for verification/testing.
     /// </summary>
-    Task<string?> GetValue();
+    public Task<string?> GetValue();
 }
 
 [GenerateSerializer]
@@ -56,31 +56,17 @@ public sealed class DataGrainState
 /// <summary>
 /// The authoritative data owner. It notifies per-silo cache grain services on changes.
 /// </summary>
-public sealed class DataGrain([PersistentState("data")] IPersistentState<DataGrainState> state, ILogger<DataGrain> logger) : Grain, IDataGrain
+public sealed partial class DataGrain(
+    [PersistentState("data")] IPersistentState<DataGrainState> state,
+    IClusterMembershipService membership,
+    ILogger<DataGrain> logger) : Grain, IDataGrain
 {
-    private readonly ObserverManager<GrainId, IDataGrainObserver> observerManager = new(TimeSpan.FromDays(365 * 10), logger);
-
-    /// <summary>
-    /// Rehydrates observer references after activation.
-    /// </summary>
-    public override async Task OnActivateAsync(CancellationToken cancellationToken)
-    {
-        foreach (var subscriberId in state.State.Subscribers)
-        {
-            var observer = GrainFactory.GetGrain<IDataGrainObserver>(subscriberId);
-            observerManager.Subscribe(subscriberId, observer);
-        }
-
-        await base.OnActivateAsync(cancellationToken);
-    }
-
     /// <summary>
     /// Persists and registers a per-silo observer, then sends the latest value.
     /// </summary>
     public async Task Subscribe(IDataGrainObserver subscriber)
     {
         var subscriberId = subscriber.GetGrainId();
-        observerManager.Subscribe(subscriberId, subscriber);
         state.State.Subscribers = state.State.Subscribers.Add(subscriberId);
         await state.WriteStateAsync();
         await subscriber.OnDataUpdated(this.GetPrimaryKeyString(), state.State.Value);
@@ -92,7 +78,6 @@ public sealed class DataGrain([PersistentState("data")] IPersistentState<DataGra
     public async Task Unsubscribe(IDataGrainObserver subscriber)
     {
         var subscriberId = subscriber.GetGrainId();
-        observerManager.Unsubscribe(subscriberId);
         var storedSubs = state.State.Subscribers.Remove(subscriberId);
         if (state.State.Subscribers != storedSubs)
         {
@@ -117,39 +102,70 @@ public sealed class DataGrain([PersistentState("data")] IPersistentState<DataGra
     }
 
     /// <summary>
-    /// Notifies all live observers of the latest value.
+    /// Fans out to all observers concurrently, then removes only confirmed-dead silo generations.
     /// </summary>
     private async Task NotifySubscribersAsync(string? value)
     {
-        if (observerManager.Count == 0)
+        var subscribers = state.State.Subscribers;
+        if (subscribers.Count == 0)
         {
             return;
         }
 
-        var subscribersChangedDuringNotification = false;
-
-        await observerManager.Notify(async observer =>
+        var stopwatch = Stopwatch.StartNew();
+        var outcomes = await ObserverFanout.DeliverConcurrentlyAsync(subscribers, async subscriberId =>
         {
-            try
-            {
-                await observer.OnDataUpdated(this.GetPrimaryKeyString(), value);
-            }
-            catch (SiloUnavailableException)
-            {
-                // SiloUnavailableException indicates the silo hosting the grain service is down,
-                // and there is no reason to keep the observer registered, as it will
-                // resubscribe itself when it restarts.
-                state.State.Subscribers = state.State.Subscribers.Remove(observer.GetGrainId());
-                subscribersChangedDuringNotification = true;
-
-                // rethrowing here ensures the observer is removed from the manager.
-                throw;
-            }
+            var observer = GrainFactory.GetGrain<IDataGrainObserver>(subscriberId);
+            await observer.OnDataUpdated(this.GetPrimaryKeyString(), value);
         });
 
-        if (subscribersChangedDuringNotification)
+        var membershipSnapshot = membership.CurrentSnapshot;
+        var confirmedDead = ImmutableHashSet.CreateBuilder<GrainId>();
+        foreach (var outcome in outcomes.Where(outcome => outcome.Error is not null))
         {
-            await state.WriteStateAsync();
+            var status = "unknown";
+            var remove = false;
+            if (SystemTargetGrainId.TryParse(outcome.ObserverId, out var systemTarget))
+            {
+                var siloAddress = systemTarget.GetSiloAddress();
+                membershipSnapshot.Members.TryGetValue(siloAddress, out var member);
+                (status, remove) = ObserverMembershipCleanup.GetDecision(
+                    siloAddress,
+                    member?.Status,
+                    membershipSnapshot.Members.Keys);
+            }
+
+            LogObserverDeliveryFailed(outcome.ObserverId.ToString(), status, remove, outcome.Error!);
+            if (remove)
+            {
+                confirmedDead.Add(outcome.ObserverId);
+            }
+        }
+
+        LogFanoutCompleted(subscribers.Count, outcomes.Count(outcome => outcome.Error is not null), confirmedDead.Count, stopwatch.ElapsedMilliseconds);
+
+        if (confirmedDead.Count > 0)
+        {
+            state.State.Subscribers = await ObserverMembershipCleanup.RemoveConfirmedAsync(
+                state.State.Subscribers,
+                confirmedDead.ToImmutable(),
+                updatedObservers =>
+                {
+                    state.State.Subscribers = updatedObservers;
+                    return state.WriteStateAsync();
+                });
         }
     }
+
+    /// <summary>
+    /// Logs a failed observer call together with its membership-based cleanup decision.
+    /// </summary>
+    [LoggerMessage(LogLevel.Warning, Message = "Observer delivery failed for {ObserverId}; membership status {MembershipStatus}; cleanup {Removed}")]
+    private partial void LogObserverDeliveryFailed(string observerId, string membershipStatus, bool removed, Exception error);
+
+    /// <summary>
+    /// Logs the aggregate result and duration of one observer fanout.
+    /// </summary>
+    [LoggerMessage(LogLevel.Information, Message = "Observer fanout completed for {Attempted} observers; {Failed} failed; {Removed} removed; duration {DurationMs} ms")]
+    private partial void LogFanoutCompleted(int attempted, int failed, int removed, long durationMs);
 }

@@ -31,13 +31,11 @@ public sealed class ClusterFixture
     }
 
     public IEnumerable<T> GetServiceFromActiveSilos<T>()
-    {
-        return Cluster
+        => Cluster
             .GetActiveSilos()
             .SelectMany(siloHandle => Cluster
                 .GetSiloServiceProvider(siloHandle.SiloAddress)
                 .GetService<IEnumerable<T>>() ?? Enumerable.Empty<T>());
-    }
 
     public async ValueTask<SiloAddress> GetHostingSiloAsync(IGrain grain)
     {

@@ -10,12 +10,12 @@ Use this skill to implement or verify the pattern where a data grain persists re
 ## Problem this solves
 You need an in-memory cache of data from a "data grain" that stays current when the data changes. Orleans Observers are ideal, but normal POCO services (e.g., singletons) lack an Orleans address and must resubscribe on an interval to maintain subscriptions. This creates overhead and causes stale data between resubscriptions when the data grain deactivates or its silo crashes.
 
-GrainServices are addressable, so the data grain can persist their GrainIds and notify them directly. Subscriptions survive grain deactivation, silo crashes, silo restarts, and red/green deployments. Failed notifications (e.g., silo down) are handled gracefully — the GrainService automatically resubscribes on startup. GrainServices also unsubscribe cleanly during normal shutdowns.
+GrainServices are addressable, so the data grain can persist their GrainIds and notify them directly. Subscriptions survive grain deactivation, silo crashes, silo restarts, and red/green deployments. Notifications must fan out concurrently so stale observers cannot delay healthy silo caches. Failed observers are retained unless cluster membership proves their exact silo generation is terminal; confirmed-dead observers are removed together in one persisted cleanup write. GrainServices unsubscribe cleanly during normal shutdowns and register their new generation on startup.
 
 ## Pattern summary
 - A single data grain owns the authoritative value and persists subscriber/observer IDs (GrainIds).
 - Each silo hosts a `GrainService` that subscribes once on startup and writes to a POCO singleton cache (`IDataCache`).
-- The data grain rehydrates subscriptions on activation and notifies observers via `ObserverManager`.
+- The data grain persists observer IDs, reconstructs references for each update, starts all notifications before awaiting the group, and evaluates failed deliveries against the current membership snapshot.
 - Subscriptions survive grain deactivation, silo crashes, silo restarts, and red/green deployments.
 - Any type can implement `IDataGrainObserver`, which implements `IGrainObserver`, so observers are not limited to a `GrainService`.
 
@@ -64,6 +64,12 @@ public interface IDataGrainObserver : IGrainObserver
 ```
 
 ## Data grain (authoritative + persistent subscribers)
+
+Do not use sequential `ObserverManager.Notify` for durable system-target subscriptions: a failed stale-generation call can consume an Orleans response timeout before the next observer is attempted. Fan out with `Task.WhenAll`, capturing each delivery result independently. Keep the subscriber-ID snapshot for the whole fanout; after all attempts complete, inspect failures using `IClusterMembershipService.CurrentSnapshot`.
+
+For each failed ID, parse it with `SystemTargetGrainId.TryParse(id, out var systemTarget)` and resolve its exact generation with `systemTarget.GetSiloAddress()`. Remove it only when that exact address is explicitly `Dead`, `Stopping`, or `ShuttingDown`, or when membership contains a newer generation for the same endpoint. Retain `Active`, `Joining`, `Created`, and missing/unknown membership entries: a timeout is not proof that a silo cannot recover. Log observer ID, delivery error, membership status, cleanup decision, and total fanout duration. Apply all confirmed removals to persisted state and call `WriteStateAsync` once after fanout.
+
+The complete sample implementation follows this policy.
 ```csharp
 /// <summary>
 /// Persisted state for the data grain.
@@ -92,25 +98,14 @@ public sealed class DataGrainState
 /// Authoritative data owner that notifies observers on changes.
 /// </summary>
 public sealed class DataGrain([PersistentState("data")] IPersistentState<DataGrainState> state,
+    IClusterMembershipService membership,
     ILogger<DataGrain> logger) : Grain, IDataGrain
 {
-    /// <summary>
-    /// ObserverManager keeps in-memory references and handles fan-out.
-    /// </summary>
-    private readonly ObserverManager<GrainId, IDataGrainObserver> observerManager =
-        new(TimeSpan.FromDays(365 * 10), logger);
-
     /// <summary>
     /// Rehydrate observers from persisted GrainIds after activation.
     /// </summary>
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        foreach (var subscriberId in state.State.Subscribers)
-        {
-            var observer = GrainFactory.GetGrain<IDataGrainObserver>(subscriberId);
-            observerManager.Subscribe(subscriberId, observer);
-        }
-
         await base.OnActivateAsync(cancellationToken);
     }
 
@@ -120,7 +115,6 @@ public sealed class DataGrain([PersistentState("data")] IPersistentState<DataGra
     public async Task Subscribe(IDataGrainObserver subscriber)
     {
         var subscriberId = subscriber.GetGrainId();
-        observerManager.Subscribe(subscriberId, subscriber);
         state.State.Subscribers = state.State.Subscribers.Add(subscriberId);
         await state.WriteStateAsync();
         await subscriber.OnDataUpdated(this.GetPrimaryKeyString(), state.State.Value);
@@ -132,7 +126,6 @@ public sealed class DataGrain([PersistentState("data")] IPersistentState<DataGra
     public async Task Unsubscribe(IDataGrainObserver subscriber)
     {
         var subscriberId = subscriber.GetGrainId();
-        observerManager.Unsubscribe(subscriberId);
         var storedSubs = state.State.Subscribers.Remove(subscriberId);
         if (state.State.Subscribers != storedSubs)
         {
@@ -157,38 +150,67 @@ public sealed class DataGrain([PersistentState("data")] IPersistentState<DataGra
     }
 
     /// <summary>
-    /// Notify all observers and remove unavailable ones from persistent state.
+    /// Notify observers concurrently and remove only generations membership proves cannot recover.
     /// </summary>
     private async Task NotifySubscribersAsync(string? value)
     {
-        if (observerManager.Count == 0)
+        var subscribers = state.State.Subscribers;
+        if (subscribers.Count == 0)
         {
             return;
         }
 
-        var subscribersChangedDuringNotification = false;
-
-        await observerManager.Notify(async observer =>
+        var deliveries = subscribers.Select(async id =>
         {
+            var observer = GrainFactory.GetGrain<IDataGrainObserver>(id);
             try
             {
                 await observer.OnDataUpdated(this.GetPrimaryKeyString(), value);
+                return (Id: id, Error: (Exception?)null);
             }
-            catch (SiloUnavailableException)
+            catch (Exception error)
             {
-                // The hosting silo is down; remove the observer and allow it to resubscribe on restart.
-                state.State.Subscribers = state.State.Subscribers.Remove(observer.GetGrainId());
-                subscribersChangedDuringNotification = true;
-
-                // Rethrow to ensure ObserverManager also removes the observer from its in-memory collection.
-                throw;
+                return (Id: id, Error: error);
             }
         });
+        var results = await Task.WhenAll(deliveries);
+        var membershipSnapshot = membership.CurrentSnapshot;
 
-        if (subscribersChangedDuringNotification)
+        var confirmedDead = results
+            .Where(result => result.Error is not null)
+            .Select(result => ConfirmedDeadGeneration(result.Id, membershipSnapshot))
+            .Where(id => id is not null)
+            .Select(id => id!.Value)
+            .ToImmutableHashSet();
+        if (confirmedDead.Count > 0)
         {
+            state.State.Subscribers = state.State.Subscribers.Except(confirmedDead);
             await state.WriteStateAsync();
         }
+    }
+
+    private GrainId? ConfirmedDeadGeneration(GrainId observerId, ClusterMembershipSnapshot snapshot)
+    {
+        if (!SystemTargetGrainId.TryParse(observerId, out var systemTarget))
+        {
+            return null;
+        }
+
+        var address = systemTarget.GetSiloAddress();
+        var superseded = snapshot.Members.Keys.Any(candidate =>
+            candidate.Endpoint.Equals(address.Endpoint) && candidate.Generation > address.Generation);
+        if (superseded)
+        {
+            return observerId;
+        }
+
+        if (snapshot.Members.TryGetValue(address, out var member)
+            && member.Status is SiloStatus.Dead or SiloStatus.Stopping or SiloStatus.ShuttingDown)
+        {
+            return observerId;
+        }
+
+        return null;
     }
 }
 ```
@@ -344,10 +366,14 @@ siloBuilder.Services.AddSingleton<IDataCache>(services => services.GetRequiredSe
 - **Initial subscription:** each silo cache sees the initial `null` value for the shared grain key, or whatever makes sense for the cache value type.
 - **Update fan-out:** `UpdateValue` notifies all per-silo services.
 - **Deactivation survival:** deactivate the data grain and verify updates still reach services without resubscription.
-- **Silo crash tolerance:** stop a non-hosting silo; updates still flow to remaining services.
+- **Silo crash tolerance:** stop a non-hosting silo; updates still flow to remaining services. Remove its observer only after membership confirms the failed generation is terminal.
+- **Concurrent fanout under stale observers:** mix reachable observers with many unreachable system-target IDs. Assert reachable caches receive the update within one observer-timeout window, rather than one timeout per stale ID.
+- **Membership-aware pruning:** cover exact-generation `Dead`, `Stopping`, and `ShuttingDown` cleanup; verify `Active`, `Joining`, `Created`, and missing/unknown membership retain IDs. Verify a newer generation on the same endpoint permits removal of the superseded ID.
+- **Batched persistence:** place multiple confirmed-dead IDs in one fanout and assert cleanup performs one state write for the entire removal set.
+- **Retryability:** failed calls to retained IDs are logged and attempted again on the next update.
 
 ## Test setup (replicate for validation)
-Use an in-process `TestCluster` with two silos, register the grain service, and assert that updates survive deactivation and silo loss.
+Use an in-process `TestCluster` with two or more silos. In addition to lifecycle checks, add deterministic tests for concurrent fanout, membership decisions, and one batched cleanup write; membership lookup should be injectable or wrapped behind a small policy seam so every status can be covered without relying on timing races.
 
 ### Cluster fixture
 ```csharp
@@ -491,7 +517,9 @@ public sealed class CacheGrainServiceSubscriptionTests
 - Use `IGrainObserver` for the observer interface so regular grains/POCOs can also subscribe.
 - The grain service still needs `IGrainService` on its public interface to register with Orleans.
 - Persist `GrainId` references, not direct observer references.
-- `ObserverManager` removes failed observers from its in-memory collection. Catch `SiloUnavailableException` in the notification handler to also remove them from persisted state.
+- Do not treat `SiloUnavailableException` as proof of permanent death. Concurrently attempt every persisted observer, check its exact silo generation in `IClusterMembershipService.CurrentSnapshot`, and retain transitional or unknown membership entries for a later update.
+- Membership cleanup is fail-closed. Parse failure, absent membership, and any nonterminal status mean keep the persisted observer.
+- Batch all confirmed-dead observer removals into one post-fanout `WriteStateAsync` call.
 
 ## References
 - [Sample implementation](assets/sample)
