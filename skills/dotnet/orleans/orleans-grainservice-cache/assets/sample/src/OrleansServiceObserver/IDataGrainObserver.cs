@@ -15,5 +15,5 @@ public interface IDataGrainObserver : IGrainObserver
     /// the grain service is subscribing.
     /// </remarks>
     [AlwaysInterleave]
-    Task OnDataUpdated(string grainKey, string? value);
+    public Task OnDataUpdated(string grainKey, string? value);
 }

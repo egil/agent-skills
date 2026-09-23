@@ -4,7 +4,7 @@ namespace OrleansServiceObserver.Grains;
 
 public interface IDataCache
 {
-    Task<string?> GetValue(string grainKey);
+    public Task<string?> GetValue(string grainKey);
 }
 
 public class DataCache(IGrainFactory grainFactory) : IDataCache
