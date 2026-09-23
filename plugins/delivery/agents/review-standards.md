@@ -10,7 +10,7 @@ tools:
 disallowedTools:
   - Edit
   - NotebookEdit
-model: opus
+model: claude-opus-5-5
 effort: high
 skills:
   - design-high-value-tests

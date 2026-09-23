@@ -6,7 +6,7 @@ tools:
   - Grep
   - Glob
   - Bash
-model: opus
+model: claude-opus-5-5
 effort: high
 skills:
   - design-high-value-tests

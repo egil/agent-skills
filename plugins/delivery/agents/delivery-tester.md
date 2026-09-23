@@ -8,7 +8,7 @@ tools:
   - Grep
   - Glob
   - Bash
-model: sonnet
+model: claude-sonnet-5
 effort: high
 skills:
   - design-high-value-tests

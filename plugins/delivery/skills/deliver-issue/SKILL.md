@@ -2,6 +2,8 @@
 name: deliver-issue
 description: Deliver one bounded GitHub issue from its linked branch through test authoring, independent two-axis review, pull request, and merge.
 disable-model-invocation: true
+model: claude-opus-5-5
+effort: xhigh
 argument-hint: "<issue number>"
 ---
 

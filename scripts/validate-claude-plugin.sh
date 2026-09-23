@@ -89,7 +89,7 @@ for f in "$PLUGIN"/agents/*.md; do
     [[ -n "$effort" ]] || fail "$base.md does not declare an effort level"
     case "$effort" in ""|low|medium|high|xhigh|max) ;; *) fail "$base.md has invalid effort '$effort'" ;; esac
     # Haiku rejects the effort parameter.
-    [[ "$model" == haiku* && -n "$effort" ]] \
+    [[ "$model" == *haiku* && -n "$effort" ]] \
         && fail "$base.md pairs $model with effort '$effort'; Haiku does not accept effort"
     AGENT_SEEN["$base"]=1
     ok "agents/$base.md ($model/$effort)"
@@ -113,6 +113,13 @@ for entry in deliver-milestone deliver-issue; do
     grep -q '^disable-model-invocation:[[:space:]]*true' "$f" \
         && ok "$entry is user-invoked only" \
         || fail "$entry must set disable-model-invocation: true"
+    # The entry skill pins the main session; without it the run inherits whatever model the user last picked.
+    grep -q '^model:[[:space:]]*[^[:space:]]' "$f" \
+        && ok "$entry pins the main-session model" \
+        || fail "$entry must declare a model"
+    grep -qE '^effort:[[:space:]]*(low|medium|high|xhigh|max)[[:space:]]*$' "$f" \
+        && ok "$entry pins the main-session effort" \
+        || fail "$entry must declare a valid effort level"
 done
 
 echo "Cross-references"

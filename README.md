@@ -178,7 +178,7 @@ The plugin deliberately does **not** depend on the Codex role skills (`author-sl
 
 ### Model routing
 
-Model and effort live in each subagent definition, since Claude Code cannot set effort per spawn. The current assignments are a documented starting point with named experiments rather than a measured optimum — see [model-routing.md](plugins/delivery/model-routing.md).
+Model and effort live in each subagent definition, and the two entry skills pin the main session to Opus 5.5, since Claude Code cannot set effort per spawn. The current assignments are a documented starting point with named experiments rather than a measured optimum — see [model-routing.md](plugins/delivery/model-routing.md).
 
 ## Claude output style plugin
 

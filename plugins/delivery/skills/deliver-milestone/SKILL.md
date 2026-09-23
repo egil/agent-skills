@@ -2,6 +2,8 @@
 name: deliver-milestone
 description: Drive a GitHub milestone or explicit issue set through small, independently mergeable slices to merged pull requests.
 disable-model-invocation: true
+model: claude-opus-5-5
+effort: xhigh
 argument-hint: "<milestone number, milestone title, or issue list>"
 ---
 

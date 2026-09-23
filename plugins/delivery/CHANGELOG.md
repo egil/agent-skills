@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 (2026-09-23)
+
+- Main session pinned to `claude-opus-5-5` at `xhigh` through the `deliver-milestone` and `deliver-issue` frontmatter, so a run no longer inherits Fable 5.1 or whatever model the user last picked.
+- Planner and both review axes move to `claude-opus-5-5`; the tester stays on `claude-sonnet-5`. All agents use full model IDs instead of the `opus`/`sonnet` aliases.
+- `model-routing.md` updated for Opus 5.5 pricing and its `medium` default effort, with a reordered experiment list.
+- Validator requires the entry skills to declare model and effort, and catches Haiku paired with effort under a full model ID.
+
 ## 0.2.0 (2026-09-16)
 
 - Role guard closes bypasses found in review: `git -C <path>`, `gh api -f state=closed`, and `--force-with-lease`. Read-only roles now use an allowlist.
