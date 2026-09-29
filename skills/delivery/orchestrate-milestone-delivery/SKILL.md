@@ -5,7 +5,7 @@ description: Supervise a GitHub milestone or explicit issue set through independ
 
 # Orchestrate milestone delivery
 
-Coordinate an explicitly scoped GitHub delivery target through durable, independently mergeable slices. GitHub records the issue, branch, pull-request, and review state; Codex tasks perform bounded work in managed worktrees.
+Coordinate an explicitly scoped GitHub delivery target through durable, independently mergeable slices. GitHub records the issue, branch, pull-request, and review state; Codex tasks perform bounded work in [native worktrees](../delivery-runtime-protocol/references/native-worktrees.md).
 
 The Supervisor is a control plane. It may inspect status and evidence and coordinate tasks, but it does not write production or test code, review a diff, adjudicate review findings, or absorb an implementation prerequisite. Code, test, and review decisions stay with the issue-owning Implementor and its bounded Tester and Reviewer tasks.
 
@@ -30,7 +30,7 @@ Before planning or mutation, locate the delivery contract through an applicable 
 
 - GitHub host, owner/repository, authorized identity, issue relationship rules, and any milestone, project, and label conventions;
 - the default branch, branch naming rule, native issue-linked-branch procedure, protected-branch rules, and permitted merge strategy;
-- Codex project, task, and worktree conventions, including the upward status-signal format;
+- Codex project and task conventions, including the upward status-signal format; worktree location is never a contract value, because every issue worktree is native;
 - the issue Agent Brief format, verification contract, test/build/coverage gates, and any green-baseline policy;
 - the durable issue or pull-request phase-checkpoint location and format used to resume after task loss or compaction, plus the issue-worktree lifecycle for ignored temporary review artifacts; no tracked repository review path is required;
 - required pull-request workflows, how completion is proven for the current head, their bounded wait budgets, and their queued, stuck, cancelled, or unavailable paths;
@@ -94,7 +94,7 @@ Use Codex project and task tools before creating work:
 3. Query the issue's native linked branches and pull requests.
 4. Resume the matching existing Implementor under the worker-continuity branch. If replacement is required, record why and transfer ownership from the linked remote branch and exact pushed SHA using `$deliver-issue-slice`; preserve the old/new task identities.
 
-Temporary inter-agent review artifacts make the existing issue worktree part of recovery. Have the recovered Implementor resolve saved Tester identity under worker continuity and inspect interrupted Tester/Reviewer exact-snapshot receipts through `$delivery-runtime-protocol`'s local-review-artifact branch before assigning missing work. Preserve the worktree at least until the pull request is ready to merge; the remote branch remains the recovery source for committed product changes.
+Temporary inter-agent review artifacts make the existing issue worktree part of recovery. Have the recovered Implementor resolve saved Tester identity under worker continuity and inspect interrupted Tester/Reviewer exact-snapshot receipts through `$delivery-runtime-protocol`'s local-review-artifact branch before assigning missing work. Locate that worktree from `git worktree list --porcelain` and the linked branch under the native-worktree rules, never from a recorded path. Preserve it at least until the pull request is ready to merge; the owning Implementor removes it after merge. The remote branch remains the recovery source for committed product changes.
 
 Immediately before task creation, re-query assignee, project state, linked development items, native branch, pull request, and Codex task state. If ownership is ambiguous, fail closed instead of creating a duplicate. Assignment to a shared GitHub identity alone is not a unique claim; the native linked branch and durable Codex task identity are.
 
@@ -102,7 +102,7 @@ Immediately before task creation, re-query assignee, project state, linked devel
 
 Create the branch through GitHub's native issue-branch relationship using the contract's naming and branch-point rules. Immediately before creation, fetch the contract-defined default branch and verify its remote OID through an independent remote query. Verify the issue's linked-branch relationship and exact OID by reading it back; do not infer success from a mutation response.
 
-Fetch that exact linked ref locally and require its OID to equal the linked-branch OID and fresh remote observation. Then create the Implementor as a Codex project task from that verified ref, passing the selected model and reasoning explicitly. If worktree provisioning is queued, retain the client task ID as a checkpoint and resolve the real task and host IDs before using operations that require them.
+Fetch that exact linked ref locally and require its OID to equal the linked-branch OID and fresh remote observation. Then create the Implementor as a Codex project task from that verified ref, passing the selected model and reasoning explicitly. Codex provisions its native managed worktree; never supply a worktree path. If worktree provisioning is queued, retain the client task ID as a checkpoint and resolve the real task and host IDs before using operations that require them.
 
 Keep the issue claim blocked during provisioning. The Implementor must attach a local branch only when worktree ownership is unambiguous, verify path, branch, upstream, `HEAD`, and remote OID, send a one-time `provisioned` receipt, and stop. After the Supervisor confirms the receipt, it sends an explicit idempotent `proceed` follow-up tied to the exact OID. Only that follow-up permits edits. If provisioning fails, preserve the linked branch and blocked claim and reconcile ownership before creating anything else.
 
@@ -114,7 +114,7 @@ When an oversized issue or newly discovered prerequisite is found, invoke a boun
 
 Use message-interruptible runtime waits rather than status polling, progress nudges, or repeated full-history reads. Keep the wake-up route active while children work. A runtime turn ending is not evidence that an issue completed. Accept only these upward signals from the immediate owner:
 
-- `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, and automatic issue closure; for a code-free parent, child pull requests and manual closure;
+- `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, automatic issue closure, and any worktree left in place because it was dirty; for a code-free parent, child pull requests and manual closure;
 - `decomposed`: durable child issue identifiers and native dependency graph;
 - `planning-checkpoint`: in guided mode, the completed child's result and proposed next step, relayed to this Supervisor for planning with the user;
 - `blocked`: concrete prerequisite or failed gate and durable checkpoint; or

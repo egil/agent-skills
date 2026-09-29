@@ -27,6 +27,12 @@ Locate the contract before planning or any mutation. It must supply:
 - the worktree lifecycle for ignored temporary review artifacts. No tracked
   repository review path is required, and its absence never blocks delivery.
 
+Worktree location is not a contract value. Every issue worktree is a native
+worktree, created and removed by the running agent's runtime as the
+`native-worktrees.md` reference defines, including the ignore and build
+exclusions the repository must carry. A contract that names a worktree path is
+stale: provision natively and report the path.
+
 **Verification**
 
 - test, build, quality, coverage, and analyzer gates, with how each is proven to

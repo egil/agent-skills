@@ -100,6 +100,7 @@ $requiredSupportFiles = @(
     'skills/delivery/orchestrate-milestone-delivery/agents/openai.yaml',
     'skills/delivery/delivery-runtime-protocol/agents/openai.yaml',
     'skills/delivery/delivery-runtime-protocol/references/model-routing.md',
+    'skills/delivery/delivery-runtime-protocol/references/native-worktrees.md',
     'skills/delivery/delivery-runtime-protocol/references/review-artifacts.md',
     'skills/delivery/plan-delivery-slices/agents/openai.yaml',
     'skills/delivery/deliver-issue-slice/agents/openai.yaml',

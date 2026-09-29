@@ -29,7 +29,11 @@ contract, native relationships, assignee, linked branch and pull request,
 durable phase checkpoints, existing review artifacts, checks, and review
 threads. Paginate every relationship and reconcile counts.
 
-Record worktree path, branch, `HEAD`, upstream, remote branch head, index
+Locate the issue worktree with `git worktree list --porcelain` and the linked
+branch, never from a remembered or recorded path, and provision one only when
+none exists. Read `../../references/native-worktrees.md` for where it lives, how
+to create or enter it, and what to do with one outside the native location.
+Record its observed path, branch, `HEAD`, upstream, remote branch head, index
 state, and untracked inventory before changing anything. Resume the existing
 linked branch and stage — never create a second implementation or restart from
 the default branch while recoverable work exists.
@@ -146,15 +150,20 @@ an operation already authorized — but do stop for anything outside it:
 deployment, release, bypassing branch protection, another issue's branch, or a
 pull-request stack.
 
+After the merge is verified, remove the issue's worktree and local branch as
+`../../references/native-worktrees.md` describes. This is part of the mandate,
+not separate cleanup. A dirty worktree stays where it is.
+
 Completion requires the pull request merged into the remote default branch, the
-linked issue closed by that merge, no outstanding required thread or check, and
-the resulting OID recorded.
+linked issue closed by that merge, no outstanding required thread or check, the
+resulting OID recorded, and the issue's worktree removed or reported as dirty.
 
 ## 6. Report
 
 Return only: the issue and pull-request URLs, the resulting default-branch OID,
-and confirmed issue closure. Keep findings, test detail, command output, and
-remediation discussion inside this slice.
+confirmed issue closure, and the path and state of any worktree left in place.
+Keep findings, test detail, command output, and remediation discussion inside
+this slice.
 
 If a terminal fact is inconsistent, report it as blocked rather than as
 complete. Merging does not authorize deployment or release.
