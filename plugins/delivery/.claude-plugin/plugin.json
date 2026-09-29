@@ -1,7 +1,7 @@
 {
   "name": "delivery",
   "displayName": "Issue Slice Delivery",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Drive a GitHub milestone or issue set through small, independently mergeable slices with separated implementation, testing, and independent two-axis review.",
   "author": {
     "name": "Egil Hansen"

@@ -9,7 +9,7 @@ Review one fixed snapshot in the Implementor's worktree, persist actionable find
 
 ## Load the consuming-repository contract
 
-The Implementor must supply the delivery contract or its discoverable location. It must define the GitHub repository and identity, native branch and worktree rules, default branch and comparison-base semantics, Agent Brief and Verification contract, repository standards sources, test and quality gates, review-thread policy, and upward status-signal route. A missing tracked repository review path is not a contract gap and must not block delivery. If specification, branch identity, comparison base, or another required contract is absent or contradictory, report that the snapshot cannot pass review; do not invent authority.
+The Implementor must supply the delivery contract or its discoverable location. It must define the GitHub repository and identity, native branch rules, default branch and comparison-base semantics, Agent Brief and Verification contract, repository standards sources, test and quality gates, review-thread policy, and upward status-signal route. A missing tracked repository review path is not a contract gap and must not block delivery. If specification, branch identity, comparison base, or another required contract is absent or contradictory, report that the snapshot cannot pass review; do not invent authority.
 
 ## Dependencies
 

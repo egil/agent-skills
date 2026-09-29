@@ -12,13 +12,13 @@ Own one small, independently mergeable vertical slice through merge. Coordinate 
 The assignment must identify or point to a delivery contract discoverable through applicable `AGENTS.md`. It must define:
 
 - GitHub host, repository, authorized identity, and issue and pull-request relationships;
-- linked-branch, worktree, default-branch, naming, commit, push, protection, and merge rules;
+- linked-branch, default-branch, naming, commit, push, protection, and merge rules;
 - Agent Brief and Verification or green-baseline contract;
 - test, build, quality, workflow, and automated-review gates with exact-head evidence and bounded waits;
 - durable phase-checkpoint format, upward signals, and authorized mutations; and
 - deployment and release exclusions unless separately authorized.
 
-A tracked repository path for temporary review records is neither required nor permitted to block delivery.
+A tracked repository path for temporary review records is neither required nor permitted to block delivery. The issue worktree is a [native worktree](../delivery-runtime-protocol/references/native-worktrees.md); a worktree path in the contract is stale, never a value to follow.
 
 If the contract or assignment omits a required value, stop before the affected mutation and report `blocked` or `human-action`; do not invent a project, account, branch prefix, default branch, label, merge strategy, or review service.
 
@@ -35,7 +35,7 @@ Load `$development-session-observability` and inherit the Supervisor's stable ru
 
 Apply the protocol's reclassification handoff when work stalls. Reroute a bounded child within the assigned allocation, or return your own stalled assignment to the Supervisor with recovery evidence. Reserve human-action signals for actual decisions or authorization gaps.
 
-A direct assignment or inherited user-approved mandate to deliver issue `#N` through merge authorizes the ordinary operations required by the contract: work on the issue's own linked branch and worktree, commit and push checkpoints, publish and update its pull request, rebase its own branch with exact lease protection, reply to review, and perform the permitted merge once every gate is clean. It does not authorize deployment, release, bypassing protections, mutating another issue's branch, creating a pull-request stack, destructive cleanup, or unrelated tracker work.
+A direct assignment or inherited user-approved mandate to deliver issue `#N` through merge authorizes the ordinary operations required by the contract: work on the issue's own linked branch and worktree, commit and push checkpoints, publish and update its pull request, rebase its own branch with exact lease protection, reply to review, and perform the permitted merge once every gate is clean, then remove its own clean native worktree and local branch. It does not authorize deployment, release, bypassing protections, mutating another issue's branch, creating a pull-request stack, destructive cleanup, or unrelated tracker work.
 
 Apply [standing delivery authorization](../delivery-runtime-protocol/references/standing-authorization.md) before requesting push/merge consent. Recover the grant from the assignment or existing checkpoint and carry it into mutating child/recovery handoffs. Once each stage's checks pass, perform its push, PR transition, or merge without renewed user confirmation. Keep publishing and merging with this Implementor; delegate only role-owned operations. A recovered or fresh worker inherits the same authorized endpoint rather than requiring a new direct user instruction.
 
@@ -48,7 +48,7 @@ Before delegating or recovering implementation or testing phases, apply [same-is
 GitHub and the remote branch are the durable delivery record; the existing issue worktree holds temporary inter-agent review receipts that must survive agent interruption.
 
 1. Re-read the issue, Agent Brief, Verification or green-baseline contract, milestone or scope, native parent and dependency relationships, assignee, linked branch or pull request, durable phase checkpoints, predictable local review artifacts, checks, and review threads. Paginate every relationship and review-thread connection and reconcile reported counts; a successful default-sized page is not complete evidence.
-2. Record worktree path, branch or detached state, `HEAD`, upstream, remote branch head, index state, worktree state, and untracked inventory before changing anything.
+2. Locate the issue worktree through [native worktrees](../delivery-runtime-protocol/references/native-worktrees.md), never from a remembered path. Record its observed path, branch or detached state, `HEAD`, upstream, remote branch head, index state, worktree state, and untracked inventory before changing anything.
 3. Fetch the exact linked remote ref and inspect `git worktree list --porcelain`. If this worktree is detached, attach a local branch tracking that ref only when no other worktree owns it, then verify branch, upstream, `HEAD`, and remote OID equality. Treat an existing checkout elsewhere as an ownership conflict.
 4. When the Supervisor sends the provisioning instruction with resolved task and host IDs, echo them in a one-time `provisioned` receipt with path, branch, upstream, `HEAD`, and verified remote OID. End the turn without editing and wait for an explicit `proceed` follow-up tied to that receipt and OID. A recovered active task must verify the matching proceed message; if absent, remain read-only and request it.
 5. Resume the existing linked branch and pull-request stage. Never create a second implementation or restart from the default branch while recoverable issue work exists.
@@ -112,14 +112,15 @@ After the local stage is complete, read [the pull-request review procedure](refe
 
 ## Rebase and merge
 
-Immediately before merge, read [the rebase procedure](references/rebase.md) and satisfy its fresh-base and exact-head criterion. Then execute the contract-defined merge operation under the standing grant, with its exact head-match guard, and verify the result. Do not stop at ready-to-merge or ask the user to reconfirm an authorized merge.
+Immediately before merge, read [the rebase procedure](references/rebase.md) and satisfy its fresh-base and exact-head criterion. Then execute the contract-defined merge operation under the standing grant, with its exact head-match guard, and verify the result. Do not stop at ready-to-merge or ask the user to reconfirm an authorized merge. After the merge is verified, remove the issue's worktree through the retain-and-remove branch of [native worktrees](../delivery-runtime-protocol/references/native-worktrees.md).
 
 Completion requires:
 
 - pull request merged into the remote default branch with resulting default-branch or merge-result OID recorded;
 - GitHub closed the linked issue through that merge;
-- no required review thread or check remains outstanding; and
-- the remote branch and project can be reconciled by the Supervisor.
+- no required review thread or check remains outstanding;
+- the remote branch and project can be reconciled by the Supervisor; and
+- the issue's native worktree and local branch are removed, or reported with path and state because they are dirty.
 
 Then send the immediate Supervisor only the canonical `completed` result and identifiers. If issue closure or another terminal fact is inconsistent, report `blocked`; merging does not authorize deployment or release.
 
@@ -131,6 +132,6 @@ Send signals only to the immediate Supervisor, which bubbles them to the top-lev
 - `planning-checkpoint`: in guided mode, a completed child's issue and pull-request result, remaining dependencies, and proposed next step for planning with the user;
 - `human-action`: one concrete decision or human implementation request with minimum options and evidence;
 - `blocked`: exact blocker and durable checkpoint; or
-- `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, and automatic issue closure.
+- `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, automatic issue closure, and the path and state of any worktree left in place because it was dirty.
 
 Pause and checkpoint while awaiting a decision. Do not ask the user separately from the owning Supervisor.

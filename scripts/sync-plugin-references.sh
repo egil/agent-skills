@@ -18,6 +18,7 @@ DEST_DIR="$ROOT/plugins/delivery/references"
 MANIFEST=(
     "skills/delivery-core/references/contract.md|contract.md"
     "skills/delivery-core/references/slicing.md|slicing.md"
+    "skills/delivery/delivery-runtime-protocol/references/native-worktrees.md|native-worktrees.md"
     "skills/delivery/delivery-runtime-protocol/references/review-artifacts.md|review-artifacts.md"
     "skills/delivery/deliver-issue-slice/references/executable-contract.md|executable-contract.md"
     "skills/delivery/deliver-issue-slice/references/pull-request-review.md|pull-request-review.md"

@@ -16,7 +16,7 @@ Before an initial or follow-up assignment, apply [same-issue worker continuity](
 
 ## Load the consuming-repository contract
 
-The invoking Implementor must supply the delivery contract or its discoverable location. It must define the GitHub identity and mutation rules, native branch and worktree conventions, commit and push policy, default branch, test commands and required gates, Agent Brief and Verification contract format, and the upward status-signal route. If required values are absent or contradictory, report `blocked` or `human-action` to the Implementor; do not infer them.
+The invoking Implementor must supply the delivery contract or its discoverable location. It must define the GitHub identity and mutation rules, native branch conventions, commit and push policy, default branch, test commands and required gates, Agent Brief and Verification contract format, and the upward status-signal route. If required values are absent or contradictory, report `blocked` or `human-action` to the Implementor; do not infer them.
 
 ## Dependencies
 
