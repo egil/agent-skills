@@ -152,11 +152,13 @@ pull-request stack.
 
 After the merge is verified, remove the issue's worktree and local branch as
 `../../references/native-worktrees.md` describes. This is part of the mandate,
-not separate cleanup. A dirty worktree stays where it is.
+not separate cleanup. A worktree that is dirty or holds commits the remote lacks
+stays where it is.
 
 Completion requires the pull request merged into the remote default branch, the
 linked issue closed by that merge, no outstanding required thread or check, the
-resulting OID recorded, and the issue's worktree removed or reported as dirty.
+resulting OID recorded, and the issue's worktree removed or reported as retained
+(dirty, or holding commits the remote lacks).
 
 ## 6. Report
 

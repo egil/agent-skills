@@ -23,7 +23,7 @@ The selected branch is complete only when:
 
 - standing authorization recovers the user-approved scope, endpoint, restrictions, and role-owned operations, then propagates that grant or identifies a concrete missing boundary; or
 - model routing records an effective supported model and reasoning pair, evidence-backed classification, rationale, any deliberate deviation, worker allocation, and verification boundary; or
-- native-worktree handling provisions or locates the issue's worktree from `git worktree list --porcelain` or removes it after merge, or reports the legacy, dirty, or stale-path state that stops it; or
+- native-worktree handling provisions or locates the issue's worktree from `git worktree list --porcelain` or removes it after merge, or reports the legacy, retained (dirty or holding unpushed commits), or stale-path state that stops it; or
 - worker continuity resumes the matching capable issue/role session with an exact phase handoff, or records the evidence-backed replacement and ownership transfer; or
 - local review recovery validates the current committed snapshot and each applicable receipt by content, then either reuses a complete result or identifies the exact missing work to resume; or
 - message-driven waiting restores a supported wake-up route, session-local limits, and absolute check deadline, selects the largest legal timeout within that deadline, then returns control for a material signal or due check.

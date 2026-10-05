@@ -120,7 +120,7 @@ Completion requires:
 - GitHub closed the linked issue through that merge;
 - no required review thread or check remains outstanding;
 - the remote branch and project can be reconciled by the Supervisor; and
-- the issue's native worktree and local branch are removed, or reported with path and state because they are dirty.
+- the issue's native worktree and local branch are removed, or reported with path and state because the worktree is retained: dirty, or holding commits the remote lacks.
 
 Then send the immediate Supervisor only the canonical `completed` result and identifiers. If issue closure or another terminal fact is inconsistent, report `blocked`; merging does not authorize deployment or release.
 
@@ -132,6 +132,6 @@ Send signals only to the immediate Supervisor, which bubbles them to the top-lev
 - `planning-checkpoint`: in guided mode, a completed child's issue and pull-request result, remaining dependencies, and proposed next step for planning with the user;
 - `human-action`: one concrete decision or human implementation request with minimum options and evidence;
 - `blocked`: exact blocker and durable checkpoint; or
-- `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, automatic issue closure, and the path and state of any worktree left in place because it was dirty.
+- `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, automatic issue closure, and the path and state of any retained worktree (dirty, or holding commits the remote lacks).
 
 Pause and checkpoint while awaiting a decision. Do not ask the user separately from the owning Supervisor.

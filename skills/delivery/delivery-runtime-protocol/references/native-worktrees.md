@@ -31,7 +31,7 @@ Record the observed path in the phase checkpoint as evidence of where the work w
 
 The worktree holds the ignored review receipts, so preserve it at least until the pull request is ready to merge. After the merge is verified, the owning session removes it:
 
-1. Check that it is clean: `git status --porcelain` is empty, and the local branch head equals the merged pull-request head or is contained in the remote default branch. Ignored review artifacts do not count. When the worktree is dirty or holds commits the remote lacks, leave it and include its path, branch, and state in the completion report.
+1. Check that it is clean: `git status --porcelain` is empty, and the local branch head equals the merged pull-request head or is contained in the remote default branch. Ignored review artifacts do not count. A worktree that is dirty or holds commits the remote lacks is **retained**: leave it, and include its path, branch, and which of the two states applies in the completion report.
 2. **Claude Code.** Leave with `ExitWorktree` (`keep`), then from the main checkout run `git worktree remove <path>` and `git branch -D <branch>`. Step 1 makes `-D` safe; `-d` refuses after a rebase merge rewrites the commits.
 3. **Codex.** Codex owns the directory. Run `git switch --detach` and `git branch -D <branch>` in the worktree, and leave directory removal to Codex.
 
@@ -42,7 +42,9 @@ This removal is part of issue completion, not destructive cleanup. It covers onl
 Native Claude Code worktrees live inside the repository, so root-level globs reach them. The consuming repository keeps `.claude/worktrees/` in `.gitignore` and excludes `.claude/**` from builds, test discovery, solution filters, and glob-based scripts and linters. For MSBuild, the root `Directory.Build.props` carries:
 
 ```xml
-<DefaultItemExcludes>$(DefaultItemExcludes);.claude/**</DefaultItemExcludes>
+<PropertyGroup>
+  <DefaultItemExcludes>$(DefaultItemExcludes);.claude/**</DefaultItemExcludes>
+</PropertyGroup>
 ```
 
 Roslyn also loads every `.globalconfig` above each source file, so a build inside a nested worktree loads the enclosing checkout's copy too and duplicate keys are silently unset. A repository with a root `.globalconfig` drops the enclosing copies in the same file. Setting `DiscoverGlobalAnalyzerConfigFiles` to `false` instead also drops package-supplied global configs.

@@ -114,7 +114,7 @@ When an oversized issue or newly discovered prerequisite is found, invoke a boun
 
 Use message-interruptible runtime waits rather than status polling, progress nudges, or repeated full-history reads. Keep the wake-up route active while children work. A runtime turn ending is not evidence that an issue completed. Accept only these upward signals from the immediate owner:
 
-- `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, automatic issue closure, and any worktree left in place because it was dirty; for a code-free parent, child pull requests and manual closure;
+- `completed`: issue and pull-request URLs, resulting default-branch or merge-result OID, automatic issue closure, and any retained worktree, dirty or holding commits the remote lacks, with its path and state; for a code-free parent, child pull requests and manual closure;
 - `decomposed`: durable child issue identifiers and native dependency graph;
 - `planning-checkpoint`: in guided mode, the completed child's result and proposed next step, relayed to this Supervisor for planning with the user;
 - `blocked`: concrete prerequisite or failed gate and durable checkpoint; or
