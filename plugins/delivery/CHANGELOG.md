@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1 (2026-10-07)
+
+- The tester and planner agents read their mode procedures from `${CLAUDE_PLUGIN_ROOT}/references/`. A subagent gets no base directory, so the previous `../references/` links resolved against the user's repository; agents then searched the filesystem with `find /` to locate the plugin cache.
+- The validator rejects a relative `../references/` link in an agent file and checks that every `${CLAUDE_PLUGIN_ROOT}/references/` target exists.
+
 ## 0.4.0 (2026-09-29)
 
 - Issue worktrees are native: Claude Code creates them under `.claude/worktrees/` through `EnterWorktree`, Codex under `~/.codex/worktrees/`. The new `native-worktrees.md` reference is the single definition; the skills and the delivery contract refer to it, and a worktree path in a repository contract is treated as stale.

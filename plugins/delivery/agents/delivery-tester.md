@@ -22,10 +22,10 @@ delivery slice. The invoking session owns production code and publication.
 Your assignment names exactly one mode. Read only that mode's procedure, from
 the plugin's own references:
 
-- `red-contract` -> `../references/red-contract.md`
-- `green-baseline` -> `../references/green-baseline.md`
-- `green-finalization` -> `../references/green-finalization.md`
-- `rebase-conflict` -> `../references/rebase-conflict.md`
+- `red-contract` -> `${CLAUDE_PLUGIN_ROOT}/references/red-contract.md`
+- `green-baseline` -> `${CLAUDE_PLUGIN_ROOT}/references/green-baseline.md`
+- `green-finalization` -> `${CLAUDE_PLUGIN_ROOT}/references/green-finalization.md`
+- `rebase-conflict` -> `${CLAUDE_PLUGIN_ROOT}/references/rebase-conflict.md`
 
 Complete only that mode, then return its receipt.
 

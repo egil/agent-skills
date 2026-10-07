@@ -134,14 +134,22 @@ done < <(grep -roh --include='SKILL.md' -E '\.\./\.\./references/[a-z-]+\.md' "$
              for s in "$PLUGIN"/skills/*/SKILL.md; do grep -q "$p" "$s" && echo "$s:$p"; done
            done)
 
-# Agent files reference the synced directory as ../references/<file>.md
+# Agent files reference the synced directory as ${CLAUDE_PLUGIN_ROOT}/references/<file>.md.
+# Claude Code substitutes that variable in agent bodies but gives a subagent no base
+# directory, so a relative ../references/ path resolves against the user's repository.
 while IFS= read -r line; do
     src="${line%%:*}"; rel="${line#*:}"
-    target="$(realpath -m "$(dirname "$src")/$rel")"
-    [[ -f "$target" ]] && ok "$(basename "$src" .md) -> $(basename "$rel")" \
-        || fail "$src references missing $rel"
+    fail "$src uses relative $rel; write \${CLAUDE_PLUGIN_ROOT}/references/ instead"
 done < <(for a in "$PLUGIN"/agents/*.md; do
              grep -oE '\.\./references/[a-z-]+\.md' "$a" | sort -u | while read -r r; do echo "$a:$r"; done
+         done)
+while IFS= read -r line; do
+    src="${line%%:*}"; file="${line#*:}"
+    [[ -f "$PLUGIN/references/$file" ]] && ok "$(basename "$src" .md) -> $file" \
+        || fail "$src references missing references/$file"
+done < <(for a in "$PLUGIN"/agents/*.md; do
+             grep -oE '\$\{CLAUDE_PLUGIN_ROOT\}/references/[a-z-]+\.md' "$a" | sort -u \
+                 | while read -r r; do echo "$a:${r##*/}"; done
          done)
 
 # Every agent a skill names must exist; a typo would otherwise surface only at run time.
