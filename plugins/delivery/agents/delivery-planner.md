@@ -14,8 +14,8 @@ skills:
 color: cyan
 ---
 
-Read `../references/slicing.md` for how to size and order slices, and
-`../references/contract.md` for the values the consuming repository must supply.
+Read `${CLAUDE_PLUGIN_ROOT}/references/slicing.md` for how to size and order slices, and
+`${CLAUDE_PLUGIN_ROOT}/references/contract.md` for the values the consuming repository must supply.
 
 You are a bounded planning role. Inspect code and documentation as needed, but
 never edit code, create a branch or pull request, run tests to change state,
